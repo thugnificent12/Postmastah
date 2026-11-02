@@ -56,6 +56,7 @@ canvas{width:100%;height:100%;display:block;touch-action:none}
 .dc{display:flex;align-items:center;gap:12px;background:#ffffff18;border:2px solid #ffffff33;border-radius:16px;padding:12px 14px;margin:9px 0;text-align:left}.dc .t{flex:1}.dc b{font-size:19px}.dc span{display:block;font-size:13px;opacity:.85;margin-top:2px}
 .dc button{background:#FFC82E;color:#14233F;border-bottom:4px solid #D99A12;font-weight:900;padding:10px 16px;border-radius:12px}
 @media (max-aspect-ratio:5/4){#stg{display:none}#stp{display:flex}}
+#sheet.cap .row .t b,#sheet.cap [style*="1E56C8"]{text-transform:capitalize}
 </style><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1E8E4F"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"></head><body>
 <div id="app">
  <div id="top"><div id="cash"></div><div id="mid"><span id="clock"></span><span id="day"></span><span id="rep" hidden></span></div><div id="speeds"><button id="s0">⏸</button><button id="s1" class="on">▶</button><button id="s2">▶▶</button><button id="s4">▶▶▶</button><button id="nHelp">?</button><button id="nMen">⚙</button></div></div>
@@ -683,6 +684,10 @@ function compDaily(){const n=compOpen().length;if(n>S.compSeen){const c=COMP[n-1
  S.promo=null;if(n&&Math.random()<.1){const c=COMP[Math.floor(Math.random()*n)];S.promo=c.n;banner(c.n+' fa una promozione: oggi arrivano meno clienti','#C0342B');}
  if(S.ad){S.ad.days--;if(S.ad.days<=0){banner('La campagna "'+ADS[S.ad.i].n+'" è finita','#8E24AA');S.ad=null;}}
  if(desks().some(d=>d.eq.includes('pc')&&wearOf(d)<30))banner('Attrezzature molto usurate: fai la manutenzione dagli sportelli','#E65100');}
+const tc=s=>String(s).split(/(\([^)]*\))/).map((p,i)=>i%2?p:p.replace(/(^|[\s\/-])([a-zà-ÿ])/g,(m,a,b)=>a+b.toUpperCase())).join('');
+function normNames(){for(const p of PACKS){p.n=tc(p.n);p.sv.forEach(x=>{x[1]=tc(x[1]);});}for(const e of EQ)e.n=tc(e.n);
+ for(const arr of [DESKT,CHAIRT,WT,POSTER,DECO,BAGNI,FLOORT,WALLT,SIGNT,VEH,DOORT,CAMS,ADS])for(const o of arr)o.n=tc(o.n);
+ for(const x of SERV)x.n=tc(x.n);}
 let ZM=1,ZPX=0,ZPY=0,ZL=-1;const zoomOK=()=>view!=='out';
 const ZB=document.createElement('div');ZB.style.cssText='position:absolute;right:10px;top:50%;display:none;flex-direction:column;gap:8px;z-index:5';
 ZB.innerHTML='<button id="zp" style="width:46px;height:46px;font-size:24px">+</button><button id="zm" style="width:46px;height:46px;font-size:24px">−</button>';$('stage').appendChild(ZB);
@@ -1023,7 +1028,7 @@ function buyEq(d,id){const e=EQN[id];if(d.eq.includes(id)||S.cash<e.c||(e.req&&!
 function setTool(k){tool=k;selDesk=null;ui();}
 function setMsg(m){msgOverride=m;ui();clearTimeout(setMsg.t);setMsg.t=setTimeout(()=>{msgOverride='';ui();},3500);}
 function closeSheet(){fireSel=-1;$('sheet').classList.add('hidden');selDesk=null;}
-function sheet(h,back){const s=$('sheet');s.innerHTML='<div class="sh-body">'+h+'</div><div class="sh-foot"><button class="close">'+(back||'← Indietro')+'</button></div>';s.classList.remove('hidden');s.querySelectorAll('.close').forEach(b=>b.onclick=closeSheet);return s;}
+function sheet(h,back){const s=$('sheet');s.innerHTML='<div class="sh-body">'+h+'</div><div class="sh-foot"><button class="close">'+(back||'← Indietro')+'</button></div>';{const h2=s.querySelector('h2');s.classList.toggle('cap',!!h2&&/^(Arredi|Migliorie|Servizi|Sportello|Sala consulenza|Scrivania del retrosportello)$/.test(h2.textContent.trim()));}s.classList.remove('hidden');s.querySelectorAll('.close').forEach(b=>b.onclick=closeSheet);return s;}
 const setTxt=(el,v)=>{if(el._v!==v){el._v=v;el.textContent=v;}};
 function ui(){
  setTxt($('cash'),eur(S.cash));
@@ -1053,9 +1058,9 @@ function showArredi(){
  '<div style="font-weight:900;color:#1E56C8;margin-top:12px">Armadi</div>'+WT.map((w,i)=>row('ward:'+i,w.n,w.kind==='doc'?'Per ritiri di raccomandate e pacchi':w.kind==='cas'?'Per la casella postale':'Per i soldi',w.c)).join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Poster promozionali</div>'+POSTER.map((p,i)=>p.rare&&!S.goals[p.rare]?'':row('poster:'+i,p.n,p.rare?'Premio · si attacca alle pareti senza finestre':'Si attacca alle pareti senza finestre',p.c)).join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Area relax</div>'+DECO.map((d,i)=>d.g==='r'?row('deco:'+i,d.n,d.d,d.c):'').join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Piante</div>'+DECO.map((d,i)=>d.g==='p'?row('deco:'+i,d.n,d.d,d.c):'').join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Per abbellire</div>'+DECO.map((d,i)=>d.g==='a'?row('deco:'+i,d.n,d.d,d.c):'').join('')+(DECO.some(d=>d.g==='x'&&S.found[d.rare])?'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Pezzi rari</div>'+DECO.map((d,i)=>d.g==='x'&&S.found[d.rare]?row('deco:'+i,d.n,'Nuovo! Pezzo raro',d.c):'').join(''):'')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Bagno</div>'+BAGNI.map((b,i)=>S.objs.some(o=>o.k==='wc'&&o.t===i)?'':row('wc:'+i,b.n,i===0?'Per tutti':(S.lvl<4?'Si sblocca al livello 5':'Servizio separato'),b.c,i>0&&S.lvl<4)).join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Altro</div>'+
  `<div class="row"><div class="t"><b>Totem con i numeri</b><span>${hasTotem()?'Già presente':eur(COST.totem)+' · i clienti prendono il numero. I display allo sportello si comprano dallo sportello'}</span></div>${hasTotem()?'':`<button data-k="totem" ${S.cash<COST.totem?'disabled':''}>Compra</button>`}</div>`+
  [['atm','ATM','Si mette ovunque, anche fuori davanti. Guadagni a fine giornata dai prelievi (commissione '+eur(ATM_FEE)+')'],['safe','Cassaforte','']].map(([k,n,d])=>{const have=S.objs.some(o=>o.k===k);return `<div class="row"><div class="t"><b>${n}</b><span>${have?'Già presente':(d?d+' · ':'')+eur(COST[k])}</span></div>${have?'':`<button data-k="${k}" ${S.cash<COST[k]?'disabled':''}>Compra</button>`}</div>`;}).join('')+
- (S.rooms.retro?row('door','Porta del retrosportello','Si mette nello spazio dietro le scrivanie',COST.door,false):'')+
- (S.rooms.post?row('pdesk','Banco per i portalettere','Con posta e pacchi sopra, senza PC · lungo il muro di fondo della sala postini',COST.pdesk,false):'')+
- (S.rooms.retro?row('tpc','Postazione di formazione','Per far migliorare i dipendenti · nel retrosportello · massimo 2',COST.tpc,S.objs.filter(o=>o.k==='tpc').length>=2):'')+(S.rooms.retro?row('rdesk','Scrivania del retrosportello','Solo PC · massimo 2',COST.rdesk,S.objs.filter(o=>o.k==='rdesk').length>=2):'')+
+ (S.rooms.retro?row('door','Porta del retrosportello','',COST.door,false):'')+
+ (S.rooms.post?row('pdesk','Banco per i portalettere','Con posta e pacchi sopra, senza PC',COST.pdesk,false):'')+
+ (S.rooms.retro?row('tpc','Postazione di formazione','Per far migliorare i dipendenti · massimo 2',COST.tpc,S.objs.filter(o=>o.k==='tpc').length>=2):'')+(S.rooms.retro?row('rdesk','Scrivania del retrosportello','Solo PC · massimo 2',COST.rdesk,S.objs.filter(o=>o.k==='rdesk').length>=2):'')+
  `<div class="row"><div class="t"><b>Rimuovi</b><span>Vendi un oggetto (rimborso 50%)</span></div><button data-k="remove">Scegli</button></div>`;
  const sh=sheet(h);sh.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{closeSheet();setTool(b.dataset.k);});
 }
@@ -1066,7 +1071,7 @@ function showServizi(){
  sheet('<h2>Servizi</h2><div style="font-size:13px;color:#5B6B86">Francobolli e posta ordinaria sono già attivi.</div>'+PACKS.map(p=>{
   const own=!!S.packs[p.id],sv=p.sv.map(x=>x[1]).join(', ');
   const lk=!own&&S.lvl<lockOf(p),st=own?(packWorks(p)?'Attivo':'Acquistato · manca: '+packNeed(p)+' (e un dipendente)'):lk?'Si sblocca al livello '+(lockOf(p)+1):eur(p.c)+' · serve '+packNeed(p);
-  const hd=p.g!==last?`<div style="margin:12px 0 2px;font-weight:900;color:#1E56C8">${p.g}</div>`:'';last=p.g;
+  const hd=p.g!==last?`<div style="margin:12px 0 2px;font-weight:900;color:#1E56C8">${tc(p.g)}</div>`:'';last=p.g;
   return hd+`<div class="row"><div class="t"><b>${p.n}</b>${p.sv.length>1?`<span>${sv}</span>`:''}<span>${st}</span></div>${own?'':lk?'<span style="font-size:20px">🔒</span>':`<button data-p="${p.id}" ${S.cash<p.c?'disabled':''}>Compra</button>`}</div>`;}).join(''))
  .querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const p=PKN[b.dataset.p];if(S.cash<p.c||S.lvl<lockOf(p))return;S.cash-=p.c;S.packs[p.id]=1;save();const y=$('sheet').scrollTop;ui();showServizi();$('sheet').scrollTop=y;});
 }
@@ -1115,11 +1120,11 @@ function showMig(){
  ${[['ac','Condizionatore',1200],['heat','Riscaldamento',1000],['tint','Vetri oscurati',900]].map(([k,n,c])=>`<div class="row"><div class="t"><b>${n}</b><span>${S[k]?'Acquistato':eur(c)}</span></div>${S[k]?'':`<button data-u="${k}" data-c="${c}" ${S.cash<c?'disabled':''}>Compra</button>`}</div>`).join('')}
  <div class="row"><div class="t"><b>Passerella per disabili</b><span>${S.ramp?'Acquistata':eur(800)}</span></div>${S.ramp?'':`<button id="rp" ${S.cash<800?'disabled':''}>Compra</button>`}</div>
  ${(()=>{const R=S.rooms,f=fr(),h=f.y1-f.y0+1,i=R.cons,canC=h>=CD*(i+1)&&i<8;const row=(id,n,d,c,dis,have,att)=>`<div class="row"><div class="t"><b>${n}</b><span>${d}</span></div>${have?'':`<button data-${att||'r'}="${id}" ${(dis||S.cash<c)?'disabled':''}>Compra</button>`}</div>`;
-  return row('retro','Retrosportello (stanza dietro l’ufficio)',R.retro?'Acquistato · porta dietro gli sportelli':eur(ROOMC.retro)+' · lunga come l’ufficio, con una porta dietro agli sportelli',ROOMC.retro,false,R.retro)+
+  return row('retro','Retrosportello',R.retro?'Acquistato':eur(ROOMC.retro),ROOMC.retro,false,R.retro)+
   (R.retro?row('retro','Ingrandisci il retrosportello','Livello '+(R.rl+1)+' di 3'+(R.rl<2?' · '+eur(RUP[R.rl]):' · massimo'),RUP[R.rl]||0,R.rl>=2,R.rl>=2,'up'):'')+
-  row('post','Sala postini (dietro il retrosportello)',R.post?'Acquistata · porta dal retrosportello':R.retro?eur(ROOMC.post)+' · si entra dal retrosportello':'Serve prima il retrosportello',ROOMC.post,!R.retro,R.post)+
+  row('post','Sala postini',R.post?'Acquistata':R.retro?eur(ROOMC.post):'Serve prima il retrosportello',ROOMC.post,!R.retro,R.post)+
   (R.post?row('post','Ingrandisci la sala postini','Livello '+(R.pl+1)+' di 3'+(R.pl<2?' · '+eur(PUP[R.pl]):' · massimo'),PUP[R.pl]||0,R.pl>=2,R.pl>=2,'up'):'')+
-  row('cons','Sala consulenza (stanza a destra)','Sale: '+R.cons+' di 8 · solo per finanziamenti e prestiti · '+(i>=8?'massimo raggiunto':canC?eur(ROOMC.cons):'serve un ufficio più grande'),ROOMC.cons,!canC,false);})()}
+  row('cons','Sala consulenza','Sale: '+R.cons+' di 8 · solo per finanziamenti e prestiti · '+(i>=8?'massimo raggiunto':canC?eur(ROOMC.cons):'serve un ufficio più grande'),ROOMC.cons,!canC,false);})()}
  ${(()=>{const c=S.cam||0,n=CAMS[c+1];return `<div class="row"><div class="t"><b>Telecamere</b><span>${CAMS[c].n}${n?' · prossimo: '+n.n+' '+eur(n.c):' · massimo'}</span></div>${n?`<button id="cm" ${S.cash<n.c?'disabled':''}>Compra</button>`:''}</div>`;})()}
  <div class="row"><div class="t"><b>Pubblicità</b><span>${S.ad?'In corso: '+ADS[S.ad.i].n+' · ancora '+S.ad.days+' giorni':'Più clienti per qualche giorno'}</span></div><button id="pb">Vedi</button></div>
  <div class="row"><div class="t"><b>Pavimento</b><span>${FLOORT[S.floorT||0].n}</span></div><button id="fl">Cambia</button></div>
@@ -1192,7 +1197,7 @@ function frame(now){
  let dr=Math.min(.1,(now-last)/1000);last=now;
  if((phase==='open'||phase==='closing')&&speed>0){let dm=dr/MINSEC*speed;while(dm>0){const s=Math.min(.25,dm);tick(s);dm-=s;if(phase==='summary'||phase==='prep')break;}ui();}
  if(++FC%30===0)checkGoals();draw();requestAnimationFrame(frame);}
-fixLayout();startDayPrep();assign();ui();requestAnimationFrame(frame);
+normNames();fixLayout();startDayPrep();assign();ui();requestAnimationFrame(frame);
 window.__G={zm:()=>ZM,showAds,showComp,compDaily,CAMS,ADS,COMP,startTour,finishStart,playStart,confetti,lightK:()=>lightK(),setT:v=>{t=v;},showDiff,showEnd,endCond,chooseDiff,spawnInspector,finishInspect,dirt:()=>S.dirt,showSign,startDayPrep,showPerson,showStaff,hitPerson,force:o=>{if(o.evt)stats.evt=EVTS.find(e=>e.id===o.evt);if(o.black)stats.black=[t,t+9999];if(o.sp){const c=custs.find(c=>!c.compOf);if(c)c.sp=o.sp;}},checkGoals,showGoals,GOALS,zoom:z=>zoomAt(cv.width/2,cv.height/2,z),pan:(x,y)=>{ZPX=x;ZPY=y;},doExpand,rooms,bfs,fr,buyRoom,setView:v=>{view=v;},packs:()=>S.packs,buyPack:id=>{S.cash-=PKN[id].c;S.packs[id]=1;},S:()=>S,tick,openDay,get phase(){return phase;},setSpeed:v=>speed=v,place,buyEq,desks,custs:()=>custs,hire:()=>{S.staff.push(newHire());assign();},stfKeys:()=>new Set(STAFFR.map((_,i)=>sKey(i))).size,staffF:()=>[...S.staff,...S.postmen].map(m=>m.f),stats:()=>stats,endDay};
 };
 </script><script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script></body></html>
