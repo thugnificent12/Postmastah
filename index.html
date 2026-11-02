@@ -604,7 +604,7 @@ function movers(N){const E=envL(),cx=E.cx,y1=E.y1,Tb=E.tb-1,L=[];let span=72;
  for(const [d,dn] of [[2.78,1],[6.2,-1]])for(let k=0;k<9;k++){const sp=dn*(.42+((k*5)%4)*.08),x=((N*sp+k*span/9+(d>3?3:0))%span+span)%span+cx-span/2;L.push({t:'ped',front:1,x,y:y1+d,dir:sp>0?1:-1,spr:(k*53+(d>3?17:0))%CUSTR.length,ph:k});}
  span=96;for(let k=0;k<6;k++)for(const lane of [0,1]){const sp=(lane?-1:1)*(1.1+((k*3)%4)*.12),x=((N*sp+k*span/6+lane*7)%span+span)%span+cx-span/2;L.push({t:'car',ax:'x',x,y:Tb+(lane?-7.45:-8.95),dir:lane?-1:1,c:CARC[(k*5+lane)%8]});}
  span=100;for(let k=0;k<6;k++)for(const lane of [0,1]){const sp=(lane?-1:1)*(1.1+((k*3)%4)*.12),yy=((N*sp+k*span/6+lane*9)%span+span)%span+Tb-14;L.push({t:'car',ax:'y',x:E.x0+(lane?-7.4:-8.95),y:yy,dir:lane?-1:1,c:CARC[(k*3+lane+2)%8]});}
- return L;}
+ return L.filter(m=>m.t==='ped');}
 const shade=(hex,f)=>{const n=parseInt(hex.slice(1),16),r=Math.max(0,Math.min(255,((n>>16)&255)+f)),gg=Math.max(0,Math.min(255,((n>>8)&255)+f)),b=Math.max(0,Math.min(255,(n&255)+f));return '#'+((1<<24)|(r<<16)|(gg<<8)|b).toString(16).slice(1);};
 function carBody(c,dir){g.fillStyle='rgba(0,0,0,.26)';g.beginPath();g.ellipse(0,0,50,7,0,0,7);g.fill();
  g.save();g.scale(dir,1);
