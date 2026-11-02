@@ -1,5 +1,9 @@
 {
   "appId": "com.glocprodz.postmaster",
   "appName": "The Postmaster",
-  "webDir": "www"
+  "webDir": "www",
+  "server": {
+    "url": "https://thugnificent12.github.io/Postmastah/",
+    "cleartext": false
+  }
 }
