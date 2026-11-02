@@ -4,6 +4,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -37,3 +39,10 @@ jobs:
         with:
           name: the-postmaster-apk
           path: capacitor/android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Pubblica l'APK nelle Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp capacitor/android/app/build/outputs/apk/debug/app-debug.apk the-postmaster.apk
+          gh release delete apk-latest --yes --cleanup-tag --repo ${{ github.repository }} || true
+          gh release create apk-latest the-postmaster.apk --repo ${{ github.repository }} --target main --title "The Postmaster (Android)" --notes "Tocca il file the-postmaster.apk per scaricarlo e installarlo."
