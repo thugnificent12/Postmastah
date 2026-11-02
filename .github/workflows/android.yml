@@ -32,6 +32,10 @@ jobs:
             cp ../android-icons/$d.png android/app/src/main/res/mipmap-$d/ic_launcher_foreground.png
           done
           npx cap sync android
+      - name: Firma sempre con la stessa chiave (cosi' gli aggiornamenti si installano sopra)
+        run: |
+          mkdir -p ~/.android
+          cp android-debug.keystore ~/.android/debug.keystore
       - name: Costruisci l'APK
         working-directory: capacitor/android
         run: ./gradlew assembleDebug
