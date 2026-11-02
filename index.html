@@ -1024,16 +1024,16 @@ function setTool(k){tool=k;selDesk=null;ui();}
 function setMsg(m){msgOverride=m;ui();clearTimeout(setMsg.t);setMsg.t=setTimeout(()=>{msgOverride='';ui();},3500);}
 function closeSheet(){fireSel=-1;$('sheet').classList.add('hidden');selDesk=null;}
 function sheet(h,back){const s=$('sheet');s.innerHTML='<div class="sh-body">'+h+'</div><div class="sh-foot"><button class="close">'+(back||'← Indietro')+'</button></div>';s.classList.remove('hidden');s.querySelectorAll('.close').forEach(b=>b.onclick=closeSheet);return s;}
+const setTxt=(el,v)=>{if(el._v!==v){el._v=v;el.textContent=v;}};
 function ui(){
- $('cash').textContent=eur(S.cash);
- $('day').textContent=dayLabel();
- $('clock').textContent=hh(t);
- $('rep').textContent='';
+ setTxt($('cash'),eur(S.cash));
+ setTxt($('day'),dayLabel());
+ setTxt($('clock'),hh(t));
  [['s0',0],['s1',1],['s2',2],['s4',4]].forEach(([id,v])=>$(id).classList.toggle('on',speed===v));
  const go=$('go');
- if(phase==='prep'){go.textContent='Apri giornata';go.disabled=!canOpen();}
- else if(phase==='summary'){go.textContent='Giorno successivo';go.disabled=false;}
- else{go.textContent=phase==='open'?'Ufficio aperto':'In chiusura';go.disabled=true;}
+ if(phase==='prep'){setTxt(go,'Apri giornata');go.disabled=!canOpen();}
+ else if(phase==='summary'){setTxt(go,'Giorno successivo');go.disabled=false;}
+ else{setTxt(go,phase==='open'?'Ufficio aperto':'In chiusura');go.disabled=true;}
  let m=msgOverride;
  if(!m){
   if(tool&&kindOf(tool)==='poster')m='Tocca una parete senza finestre per attaccare il poster ('+eur(costOf('poster',typeOf(tool)))+')';
@@ -1044,7 +1044,7 @@ function ui(){
   else if(phase==='open'||phase==='closing'){const w=custs.filter(c=>c.state==='wait'||c.state==='enter').length;m='In attesa: '+w+' · Serviti: '+stats.served+' · Incasso: '+eur(stats.inc);}
  }
  const cancel=tool?'<button class="acc" id="cx">Annulla</button>':'';
- $('msg').style.display=m?'flex':'none';$('msg').innerHTML='<span>'+m+'</span>'+cancel;if(tool)$('cx').onclick=()=>setTool(null);
+ const mh=m?'<span>'+m+'</span>'+cancel:'',mg=$('msg');if(mg._h!==mh){mg._h=mh;mg.style.display=m?'flex':'none';mg.innerHTML=mh;if(tool)$('cx').onclick=()=>setTool(null);}
 }
 function showArredi(){
  const row=(k,n,d,c,extra)=>`<div class="row"><div class="t"><b>${n}</b><span>${d?d+' · ':''}${eur(c)}</span></div><button data-k="${k}" ${S.cash<c||extra?'disabled':''}>Compra</button></div>`;
