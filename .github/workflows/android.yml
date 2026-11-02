@@ -1,0 +1,39 @@
+name: Android APK
+on:
+  workflow_dispatch: {}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Prepara i file del gioco
+        run: |
+          mkdir -p capacitor/www
+          cp index.html manifest.webmanifest icon-192.png icon-512.png capacitor/www/
+      - name: Crea il progetto Android
+        working-directory: capacitor
+        run: |
+          npm install
+          npx cap add android
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            mkdir -p android/app/src/main/res/mipmap-$d
+            cp ../android-icons/$d.png android/app/src/main/res/mipmap-$d/ic_launcher.png
+            cp ../android-icons/$d.png android/app/src/main/res/mipmap-$d/ic_launcher_round.png
+            cp ../android-icons/$d.png android/app/src/main/res/mipmap-$d/ic_launcher_foreground.png
+          done
+          npx cap sync android
+      - name: Costruisci l'APK
+        working-directory: capacitor/android
+        run: ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: the-postmaster-apk
+          path: capacitor/android/app/build/outputs/apk/debug/app-debug.apk
