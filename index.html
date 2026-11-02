@@ -685,7 +685,7 @@ function compDaily(){const n=compOpen().length;if(n>S.compSeen){const c=COMP[n-1
 let ZM=1,ZPX=0,ZPY=0,ZL=-1;const zoomOK=()=>S.lvl>=1&&view!=='out';
 const ZB=document.createElement('div');ZB.style.cssText='position:absolute;right:10px;top:50%;display:none;flex-direction:column;gap:8px;z-index:5';
 ZB.innerHTML='<button id="zp" style="width:46px;height:46px;font-size:24px">+</button><button id="zm" style="width:46px;height:46px;font-size:24px">−</button>';$('stage').appendChild(ZB);
-function zoomAt(fx,fy,z2){z2=Math.max(1,Math.min(3,z2));const k=z2/ZM;ZPX=fx-cam.bx-(fx-cam.bx-ZPX)*k;ZPY=fy-cam.by-(fy-cam.by-ZPY)*k;ZM=z2;}
+function zoomAt(fx,fy,z2){z2=Math.max(.5,Math.min(3,z2));const k=z2/ZM;ZPX=fx-cam.bx-(fx-cam.bx-ZPX)*k;ZPY=fy-cam.by-(fy-cam.by-ZPY)*k;ZM=z2;}
 $('zp').onclick=()=>zoomAt(cv.width/2,cv.height/2,ZM*1.4);$('zm').onclick=()=>zoomAt(cv.width/2,cv.height/2,ZM/1.4);
 function draw(){
  if(view==='out'){ZB.style.display='none';drawOut();return;}
@@ -693,7 +693,7 @@ function draw(){
  const f=fr(),x0=f.x0,x1=f.x1+1,y0=f.y0,y1=f.y1+1,R=S.rooms,rs=rooms(),dr=doors();
  const ret=rs.find(r=>r.id==='retro'),pos=rs.find(r=>r.id==='post'),conss=rs.filter(r=>r.id.startsWith('cons'));
  const topY=Math.min(...rs.map(r=>r.y0)),XE=Math.max(...rs.map(r=>r.x1+1));
- const pts=[iso(x0-.3,topY-.3,WH+8),iso(XE+.3,topY-.3,WH+8),iso(x0-.3,y1+.4,-4),iso(XE+.3,y1+.4,-4),iso(8,y1+2.2,0),iso(XE,topY,0),iso(x0-3,y1+6,0),iso(XE+3,y1+6,0),iso(x0-4.5,topY,0),iso(8,y1+9,0),iso((x0+XE)/2,envL().tb-5,0)];
+ const pts=[iso(x0-.6,topY-.4,WH+10),iso(XE+.6,topY-.4,WH+10),iso(x0-.6,y1+1.2,-4),iso(XE+.6,y1+1.2,-4),iso(XE+.6,topY,0),iso(x0-.6,topY,0)];
  let mnx=1e9,mxx=-1e9,mny=1e9,mxy=-1e9;pts.forEach(p=>{mnx=Math.min(mnx,p[0]);mxx=Math.max(mxx,p[0]);mny=Math.min(mny,p[1]);mxy=Math.max(mxy,p[1]);});
  const vw=mxx-mnx+40,vh=mxy-mny+40,sc=Math.min(cv.width/vw,cv.height/vh),ox=(cv.width-vw*sc)/2,oy=(cv.height-vh*sc)/2;
  cam={sc,ox,oy,wx0:mnx-20,wy0:mny-20};
