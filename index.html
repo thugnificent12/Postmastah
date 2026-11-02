@@ -56,8 +56,7 @@ canvas{width:100%;height:100%;display:block;touch-action:none}
 .dc{display:flex;align-items:center;gap:12px;background:#ffffff18;border:2px solid #ffffff33;border-radius:16px;padding:12px 14px;margin:9px 0;text-align:left}.dc .t{flex:1}.dc b{font-size:19px}.dc span{display:block;font-size:13px;opacity:.85;margin-top:2px}
 .dc button{background:#FFC82E;color:#14233F;border-bottom:4px solid #D99A12;font-weight:900;padding:10px 16px;border-radius:12px}
 @media (max-aspect-ratio:5/4){#stg{display:none}#stp{display:flex}}
-#sheet.cap .row .t b,#sheet.cap [style*="1E56C8"]{text-transform:capitalize}
-</style><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1E8E4F"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"></head><body>
+</style><link rel="manifest" href="manifest.webmanifest"></head><body>
 <div id="app">
  <div id="top"><div id="cash"></div><div id="mid"><span id="clock"></span><span id="day"></span><span id="rep" hidden></span></div><div id="speeds"><button id="s0">⏸</button><button id="s1" class="on">▶</button><button id="s2">▶▶</button><button id="s4">▶▶▶</button><button id="nHelp">?</button><button id="nMen">⚙</button></div></div>
  <div id="stage"><canvas id="cv"></canvas><div id="loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;background:#1B2433;z-index:9">Caricamento…</div><div id="msg"></div><button id="vw">Vista esterna</button><div id="tag">© 2026 G-Loc Prodz</div></div>
@@ -380,7 +379,7 @@ function wallSeg(o,c,a,b,h,gaps){
 /* ---------- extra: obiettivi, eventi, effetti ---------- */
 let FC=0;const FX=[];
 const LOCKL={'Ritiri':1,'Pagamenti':1,'Telefonia':2,'Filatelia':2,'Carta ricaricabile':3,'Documenti':3,'Conto':4,'Risparmio':5,'Assicurazioni':6,'Servizi finanziari':7,'Finanziamenti e prestiti':7};
-const lockOf=p=>LOCKL[p.g]||0;
+const lockOf=p=>(UL.pack[p.id]||1)-1;
 const nPacks=()=>Object.keys(S.packs).length;
 const GOALS=[
 {id:'l5',n:'Ufficio di livello 5',f:()=>S.lvl>=4},{id:'l10',n:'Ufficio di livello 10',f:()=>S.lvl>=9},{id:'l13',n:'Ufficio al livello massimo (13)',f:()=>S.lvl>=12},
@@ -504,7 +503,7 @@ const TRC=300;let lastHalf=false;
 function staffDaily(){if(S.day<2)return;
  for(const m of S.staff){if(m.off>0)m.off--;else if(m.trn>0){m.trn--;if(m.trn===0){m.tr=Math.min(3,(m.tr||0)+1);banner(m.nm+' ha finito la formazione','#2E7D4F');}}}
  const av=S.staff.filter(m=>!m.off&&!m.trn);
- if(S.day>=5&&av.length>=2&&Math.random()<.04*av.length){const m=av[Math.floor(Math.random()*av.length)];m.off=3+Math.floor(Math.random()*4);banner(m.nm+' è in ferie per '+m.off+' giorni','#6D4C41');}
+ if(S.day>=5&&S.lvl>=2&&av.length>=2&&Math.random()<.04*av.length){const m=av[Math.floor(Math.random()*av.length)];m.off=3+Math.floor(Math.random()*4);banner(m.nm+' è in ferie per '+m.off+' giorni','#6D4C41');}
  assign();}
 function hitPerson(e){const [wx,wy]=worldOf(e);
  for(const o of S.objs){if((o.k==='desk'||o.k==='cons'||o.k==='rdesk')&&o.st){const p=iso(o.x+.5,o.y+(o.k==='cons'?.3:.22),0);if(Math.abs(wx-p[0])<20&&wy>p[1]-92&&wy<p[1]-26)return{m:o.st,kind:'staff'};}}
@@ -519,7 +518,7 @@ function showPerson(m,kind){const open=phase==='open'||phase==='closing',role=ki
  <div class="row"><div class="t"><b>Assunto</b><span>Giorno ${m.hd}</span></div></div>
  ${kind==='staff'?`<div class="row"><div class="t"><b>Servizi svolti</b><span>${m.sv||0}</span></div></div>
  <div class="row"><div class="t"><b>Formazione</b><span>Livello ${m.tr||0} di 3${(m.tr||0)<3&&!tpcN?' · serve una postazione di formazione nel retrosportello':(m.tr||0)<3&&open?' · si fa a ufficio chiuso':''}</span></div>${canTr?`<button id="trb" ${S.cash<TRC?'disabled':''}>${eur(TRC)}</button>`:''}</div>
- <div class="row"><div class="t"><b>Turno</b><span>${shn[m.sh||0]}${m.sh?' · stipendio ridotto':''}</span></div><button id="shb" ${open?'disabled':''}>Cambia</button></div>`:''}
+ <div class="row"><div class="t"><b>Turno</b><span>${S.lvl<2?'Si sblocca al livello 3':shn[m.sh||0]+(m.sh?' · stipendio ridotto':'')}</span></div><button id="shb" ${open||S.lvl<2?'disabled':''}>Cambia</button></div>`:''}
  <div class="row"><div class="t"><b>Stipendio</b><span>${eur(kind==='staff'?payOf(m):Math.round(SALD()*hoursF()))} al giorno</span></div></div>
  <div class="row"><div class="t"><b>Licenzia</b><span>${open?'Solo a ufficio chiuso':''}</span></div><button class="sell" id="fi" ${open?'disabled':''}>Licenzia</button></div>`);
  const pn=s.querySelector('#pnm');pn.oninput=()=>{m.nm=pn.value.slice(0,16);};pn.onchange=()=>{if(!m.nm.trim())m.nm=rndName();save();};
@@ -564,7 +563,7 @@ function cleanTick(dt){if(phase!=='open'&&phase!=='closing')return;
    if(!m.path.length){m.ct+=dt;if(m.ct>=4){const i=S.dirt.indexOf(m.tg);if(i>=0)S.dirt.splice(i,1);m.tg=null;}}}}}
 function dirtTick(dt){if(phase!=='open'||S.dirt.length>=40)return;
  for(const c of custs){if(c.compOf||c.cop||c.sp==='isp')continue;if((c.state==='wait'||c.state==='serve')&&inOffice(Math.floor(c.x),Math.floor(c.y))&&Math.random()<dt*.004)S.dirt.push({x:c.x+rnd(-.3,.3),y:c.y+rnd(0,.3),k:Math.floor(Math.random()*3)});}
- if(!S.cleanUnlock&&S.dirt.length>=8){S.cleanUnlock=1;S.cleanUnlockDay=S.day;banner('Il pavimento si sporca: puoi assumere addetti alle pulizie (Personale)','#6D4C41');}}
+ if(!S.cleanUnlock&&S.lvl>=3&&S.dirt.length>=8){S.cleanUnlock=1;S.cleanUnlockDay=S.day;banner('Il pavimento si sporca: puoi assumere addetti alle pulizie (Personale)','#6D4C41');}}
 function spawnInspector(){const f=fr(),c={id:++cid,spr:Math.floor(Math.random()*CUSTR.length),svc:'isp',sp:'isp',x:7.5,y:11.5,path:[],state:'toInsp',born:t,seat:null,d:null,rem:0,spot:null,ord:0,tk:''};
  c.path=bfs(7,11,Math.floor((f.x0+f.x1)/2),f.y1-1)||[];custs.push(c);banner('Arriva un ispettore!','#37474F');}
 function finishInspect(c){const probs=[];if(S.dirt.length>10)probs.push('troppo sporco');if(S.objs.filter(o=>o.k==='chair').length<S.objs.filter(o=>o.k==='desk').length)probs.push('poche sedie per i clienti');if(S.lvl>=2&&!S.objs.some(o=>o.k==='wc'))probs.push('manca il bagno');if(S.lvl>=4&&!S.ramp)probs.push('manca la passerella per disabili');
@@ -650,7 +649,7 @@ function exitGame(){const s=sheet('<h2>Uscire dal gioco?</h2><div style="color:#
 for(const id of ['sbPlay','spPlay'])$(id).onclick=playStart;for(const id of ['sbSet','spSet'])$(id).onclick=showMenu;for(const id of ['sbRank','spRank'])$(id).onclick=showRank;for(const id of ['sbExit','spExit'])$(id).onclick=exitGame;
 $('st2b').onclick=()=>ST.classList.remove('s2');
 /* ---------- tutorial guidato ---------- */
-const TOUR=[['#stage','Benvenuto, direttore! Questo è il tuo ufficio. Per ora hai solo uno sportello: vendi francobolli e posta ordinaria.'],['#cash','Qui vedi i tuoi soldi. Tienili d’occhio!'],['#mid','Qui vedi l’ora, il giorno e il meteo. La domenica e i festivi l’ufficio è chiuso.'],['#speeds','Con questi tasti metti in pausa o vai più veloce. Il ? riapre questo tutorial, l’ingranaggio apre il menu.'],['#nPer','Personale: qui assumi i dipendenti. Per aprire serve almeno una persona.'],['#nArr','Arredi: sedie, armadi, bagno, area relax, piante, poster e altro.'],['#nSer','Servizi: compra nuovi servizi. Ognuno dice cosa serve (PC, bilancia...). Per comprare le attrezzature tocca lo sportello.'],['#nMig','Migliorie: ingrandisci l’ufficio, retrosportello, allarme, pavimento, pareti, insegna...'],['#go','Quando sei pronto premi Apri giornata. I clienti arrivano piano piano.'],['#vw','Con questo tasto cambi tra la vista dentro e la vista fuori.'],['#stage','Per ingrandire o rimpicciolire la vista usa due dita (pizzica). Con un dito trascini la vista. Sul computer usa la rotella del mouse.'],['#stage','Buon lavoro! Assumi il primo dipendente e apri la giornata. Obiettivi e statistiche sono nel menu ⚙.']];
+const TOUR=[['#stage','Benvenuto, direttore! Questo è il tuo ufficio. Per ora hai solo uno sportello: vendi francobolli e posta ordinaria. All’inizio non hai niente da comprare: assumi un dipendente, apri la giornata e guadagna per ingrandire l’ufficio. Dal livello 2 si sbloccano i primi acquisti.'],['#cash','Qui vedi i tuoi soldi. Tienili d’occhio!'],['#mid','Qui vedi l’ora, il giorno e il meteo. La domenica e i festivi l’ufficio è chiuso.'],['#speeds','Con questi tasti metti in pausa o vai più veloce. Il ? riapre questo tutorial, l’ingranaggio apre il menu.'],['#nPer','Personale: qui assumi i dipendenti. Per aprire serve almeno una persona.'],['#nArr','Arredi: sedie, armadi, bagno, area relax, piante, poster e altro. Si sbloccano un po’ alla volta, salendo di livello.'],['#nSer','Servizi: compra nuovi servizi. Ognuno dice cosa serve (PC, bilancia...) e a che livello si sblocca. Per comprare le attrezzature tocca lo sportello.'],['#nMig','Migliorie: ingrandisci l’ufficio (è la cosa più importante), poi retrosportello, allarme, pavimento, pareti, insegna... si sbloccano salendo di livello.'],['#go','Quando sei pronto premi Apri giornata. I clienti arrivano piano piano.'],['#vw','Con questo tasto cambi tra la vista dentro e la vista fuori.'],['#stage','Per ingrandire o rimpicciolire la vista usa due dita (pizzica). Con un dito trascini la vista. Sul computer usa la rotella del mouse.'],['#stage','Buon lavoro! Assumi il primo dipendente e apri la giornata. Obiettivi e statistiche sono nel menu ⚙.']];
 const TV=document.createElement('div');TV.style.cssText='position:absolute;inset:0;z-index:7;display:none';
 TV.innerHTML='<div id="thl" style="position:absolute;border:3px solid #FFC82E;border-radius:12px;box-shadow:0 0 0 4000px rgba(8,14,40,.66);transition:all .35s;pointer-events:none"></div><div id="tcd" style="position:absolute;left:12px;right:12px;background:#fff;color:#14233F;border-radius:16px;padding:14px 16px;box-shadow:0 6px 22px #0008"><div id="ttx" style="font-weight:800;font-size:16px;line-height:1.35"></div><div style="display:flex;gap:10px;margin-top:12px;align-items:center"><span id="tpg" style="flex:1;font-size:12px;color:#5B6B86"></span><button id="tsk" style="background:#E9EEF6;color:#14233F">Salta</button><button id="tnx" style="background:#1E56C8;color:#fff">Avanti</button></div></div>';
 $('app').appendChild(TV);
@@ -676,18 +675,37 @@ const maintCost=d=>Math.round((d.eq.reduce((a,i)=>a+EQN[i].c,0)*.25+20)/5)*5;
 function drawCams(x0,x1,topY){const n=CAMS[S.cam||0].k;for(let i=0;i<n;i++){const x=x0+1.2+i*((x1-x0-2.4)/Math.max(1,n-1)),y=topY;prism(x-.12,y,x+.12,y+.3,88,98,'#3A414D','#2B3340','#1F2630');prism(x-.05,y+.28,x+.05,y+.42,90,96,'#101826','#101826','#101826');const p=iso(x,y+.43,93);g.fillStyle=(Math.floor(performance.now()/700)%2)?'#FF4A3D':'#7A1F18';g.beginPath();g.arc(p[0],p[1],1.6,0,7);g.fill();}}
 function camsOut(bx,w){const n=CAMS[S.cam||0].k;if(!n)return;const xs=[];for(let i=0;i<n;i++)xs.push(bx+14+i*((w-28)/Math.max(1,n-1)));for(const x of xs){g.fillStyle='#3A414D';g.fillRect(x-7,62,14,9);g.fillStyle='#101826';g.fillRect(x-3,71,6,5);g.fillStyle=(Math.floor(performance.now()/700)%2)?'#FF4A3D':'#7A1F18';g.fillRect(x+4,64,3,3);}}
 function showAds(){const act=S.ad?ADS[S.ad.i]:null;
- const s=sheet('<h2>Pubblicità</h2><div style="font-size:13px;color:#5B6B86">'+(act?'In corso: '+act.n+' · ancora '+S.ad.days+' giorni':'Nessuna campagna in corso. Ne puoi fare una alla volta.')+'</div>'+ADS.map((a,i)=>'<div class="row"><div class="t"><b>'+a.n+'</b><span>+'+Math.round(a.pct*100)+'% clienti per '+a.days+' giorni · '+eur(adCost(a))+'</span></div><button data-a="'+i+'" '+(S.ad||S.cash<adCost(a)?'disabled':'')+'>Compra</button></div>').join(''));
- s.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const i=+b.dataset.a,a=ADS[i];if(S.ad||S.cash<adCost(a))return;S.cash-=adCost(a);S.ad={i,days:a.days};save();ui();banner('Campagna partita: '+a.n,'#8E24AA');showAds();});}
+ const s=sheet('<h2>Pubblicità</h2><div style="font-size:13px;color:#5B6B86">'+(act?'In corso: '+act.n+' · ancora '+S.ad.days+' giorni':'Nessuna campagna in corso. Ne puoi fare una alla volta.')+'</div>'+ADS.map((a,i)=>'<div class="row"><div class="t"><b>'+a.n+'</b><span>+'+Math.round(a.pct*100)+'% clienti per '+a.days+' giorni · '+eur(adCost(a))+'</span></div><button data-a="'+i+'" '+(S.ad||S.cash<adCost(a)||UL.mig.ad[i]>S.lvl+1?'disabled':'')+'>Compra</button></div>').join(''));
+ s.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const i=+b.dataset.a,a=ADS[i];if(S.ad||S.cash<adCost(a)||UL.mig.ad[i]>S.lvl+1)return;S.cash-=adCost(a);S.ad={i,days:a.days};save();ui();banner('Campagna partita: '+a.n,'#8E24AA');showAds();});}
 function showComp(){const op=compOpen(),tot=Math.round((1-compMult())*100);
  sheet('<h2>Concorrenza</h2><div style="font-size:13px;color:#5B6B86">Altri uffici della città ti tolgono dei clienti. Con più clienti contenti e con la pubblicità ne senti meno. Ora perdi circa il '+tot+'% dei clienti.</div>'+COMP.map(c=>{const o=S.lvl>=c.lv;return '<div class="row"><div class="t"><b>'+(o?c.n:'???')+'</b><span>'+(o?c.d+' · −'+Math.round(compImpact(c)*100)+'% clienti':'Si apre al livello '+(c.lv+1))+'</span></div></div>';}).join(''));}
 function compDaily(){const n=compOpen().length;if(n>S.compSeen){const c=COMP[n-1];banner('Nuovo concorrente: '+c.n+' ha aperto in città','#C0342B');}S.compSeen=n;
  S.promo=null;if(n&&Math.random()<.1){const c=COMP[Math.floor(Math.random()*n)];S.promo=c.n;banner(c.n+' fa una promozione: oggi arrivano meno clienti','#C0342B');}
  if(S.ad){S.ad.days--;if(S.ad.days<=0){banner('La campagna "'+ADS[S.ad.i].n+'" è finita','#8E24AA');S.ad=null;}}
  if(desks().some(d=>d.eq.includes('pc')&&wearOf(d)<30))banner('Attrezzature molto usurate: fai la manutenzione dagli sportelli','#E65100');}
-const tc=s=>String(s).split(/(\([^)]*\))/).map((p,i)=>i%2?p:p.replace(/(^|[\s\/-])([a-zà-ÿ])/g,(m,a,b)=>a+b.toUpperCase())).join('');
+const SMALLW=new Set(['per','in','i','da','d\'','del','di','con','dalla','e','il','a']);
+const tc=s=>String(s).split(/(\([^)]*\))/).map((p,i)=>i%2?p:p.replace(/(^|[\s\/-])([a-zà-ÿ][a-zà-ÿ']*)/g,(m,a,w,off)=>{const first=off===0&&!i;return a+((!first&&SMALLW.has(w))?w:w[0].toUpperCase()+w.slice(1));})).join('');
 function normNames(){for(const p of PACKS){p.n=tc(p.n);p.sv.forEach(x=>{x[1]=tc(x[1]);});}for(const e of EQ)e.n=tc(e.n);
  for(const arr of [DESKT,CHAIRT,WT,POSTER,DECO,BAGNI,FLOORT,WALLT,SIGNT,VEH,DOORT,CAMS,ADS])for(const o of arr)o.n=tc(o.n);
  for(const x of SERV)x.n=tc(x.n);}
+/* ---------- progressione: cosa si sblocca a ogni livello, e prezzi ---------- */
+const UL={eq:{pc:2,bil:2,stp:3,bol:3,eti:3,pos:4,pad:5,led:5,dsp:6},
+ pack:{ra:2,asr:2,pe:2,pn:3,pi:4,rr:3,rp:3,cap:3,bol:3,bau:3,f24:4,pgp:4,vag:5,vgi:5,rt:4,sim:5,lin:6,prc:5,pnc:5,ppc:5,frc:6,fol:6,cpc:7,cpo:7,cpi:7,bon:7,cpa:7,lbo:8,lba:8,bu:8,pn2:8,ag:8,ps:9,pp:9,sp:9,sc:9,cv:9,tg:9,polc:10,poli:10,polv:10,pola:10,fn:11,pre:11},
+ desk:[2,4,7],chair:[2,4,7],ward:[3,4,6],poster:[5,5,5,5],deco:[6,6,6,5,7,8,3,4,6,3,5,6,3,9,1,1],wc:[4,7,7],door:4,tpc:5,rdesk:4,pdesk:7,totem:6,atm:7,safe:8,
+ mig:{alarm:[3,5,8],doorT:[4,8],rup:[6,9],pup:[8,10],cam:[5,8,11],veh:[7,9,11],ad:[2,4,6,8]}};
+const MC={door2:1500,ac:1200,heat:1000,tint:900,ramp:800};
+const ulK=k=>{const [a,b]=String(k).split(':'),i=+b||0;switch(a){case 'desk':return UL.desk[i]||1;case 'chair':return UL.chair[i]||1;case 'ward':return UL.ward[i]||1;case 'poster':return UL.poster[i]||5;case 'deco':return UL.deco[i]||1;case 'wc':return UL.wc[i]||1;case 'door':return UL.door;case 'tpc':return UL.tpc;case 'rdesk':return UL.rdesk;case 'pdesk':return UL.pdesk;case 'totem':return UL.totem;case 'atm':return UL.atm;case 'safe':return UL.safe;default:return 1;}};
+const lvSc=L=>L<=2?1:1+.22*(L-2),r5=v=>Math.round(v/5)*5;
+function applyCosts(){const up=(o,L)=>{if(o&&o.c>0)o.c=r5(o.c*lvSc(L));};
+ for(const e of EQ)up(e,UL.eq[e.id]||2);for(const p of PACKS)up(p,UL.pack[p.id]||2);
+ DESKT.forEach((o,i)=>up(o,UL.desk[i]));CHAIRT.forEach((o,i)=>up(o,UL.chair[i]));WT.forEach((o,i)=>up(o,UL.ward[i]));POSTER.forEach((o,i)=>{if(!o.rare)up(o,UL.poster[i]);});DECO.forEach((o,i)=>{if(!o.rare)up(o,UL.deco[i]);});BAGNI.forEach((o,i)=>up(o,UL.wc[i]));
+ for(const [k,L] of [['totem',UL.totem],['atm',UL.atm],['safe',UL.safe],['door',UL.door],['rdesk',UL.rdesk],['pdesk',UL.pdesk],['tpc',UL.tpc]])COST[k]=r5(COST[k]*lvSc(L));
+ ROOMC.retro=r5(ROOMC.retro*lvSc(4));ROOMC.post=r5(ROOMC.post*lvSc(7));ROOMC.cons=r5(ROOMC.cons*lvSc(10));RUP.forEach((v,i)=>{RUP[i]=r5(v*lvSc(UL.mig.rup[i]));});PUP.forEach((v,i)=>{PUP[i]=r5(v*lvSc(UL.mig.pup[i]));});
+ ALARM.forEach((o,i)=>{if(i)up(o,UL.mig.alarm[i-1]);});DOORT.forEach((o,i)=>{if(i)up(o,UL.mig.doorT[i-1]);});CAMS.forEach((o,i)=>{if(i)up(o,UL.mig.cam[i-1]);});VEH.forEach((o,i)=>{if(i)up(o,UL.mig.veh[i-1]);});
+ SIGNT.forEach(o=>up(o,2));FLOORT.forEach(o=>up(o,3));WALLT.forEach(o=>up(o,3));
+ MC.door2=r5(MC.door2*lvSc(3));MC.ac=r5(MC.ac*lvSc(4));MC.heat=r5(MC.heat*lvSc(4));MC.tint=r5(MC.tint*lvSc(5));MC.ramp=r5(MC.ramp*lvSc(3));}
+function lockMig(s){const L=S.lvl+1,R=S.rooms;const m=(sel,lv)=>{const b=s.querySelector(sel);if(!b||!lv||lv<=L)return;b.disabled=true;const sp=b.closest('.row').querySelector('.t span');if(sp)sp.textContent='Si sblocca al livello '+lv;};
+ m('#al',UL.mig.alarm[S.alarm||0]);m('#dt',UL.mig.doorT[S.doorT||0]);m('[data-u="ac"]',4);m('[data-u="heat"]',4);m('[data-u="tint"]',5);m('#rp',3);m('[data-r="retro"]',4);m('[data-r="post"]',7);m('[data-r="cons"]',10);m('[data-up="retro"]',UL.mig.rup[R.rl]);m('[data-up="post"]',UL.mig.pup[R.pl]);m('#cm',UL.mig.cam[S.cam||0]);m('#vh',UL.mig.veh[S.veh||0]);m('#fl',3);m('#wl',3);m('#sg',2);m('#pb',2);}
 let ZM=1,ZPX=0,ZPY=0,ZL=-1;const zoomOK=()=>view!=='out';
 const ZB=document.createElement('div');ZB.style.cssText='position:absolute;right:10px;top:50%;display:none;flex-direction:column;gap:8px;z-index:5';
 ZB.innerHTML='<button id="zp" style="width:46px;height:46px;font-size:24px">+</button><button id="zm" style="width:46px;height:46px;font-size:24px">−</button>';$('stage').appendChild(ZB);
@@ -1008,7 +1026,7 @@ function canPlace(k,x,y,t){
  if((k==='atm'||k==='safe')&&S.objs.some(o=>o.k===k))return false;
  return connectedOK(x+','+y);}
 function place(k,x,y,t){
- t=t||0;const cost=costOf(k,t);
+ t=t||0;{const lv=ulK(k+(['desk','chair','ward','poster','deco','wc'].includes(k)?':'+t:''));if(lv>S.lvl+1){setMsg('Si sblocca al livello '+lv);return;}}const cost=costOf(k,t);
  if(S.cash<cost){setMsg('Cassa insufficiente');return;}
  if(!canPlace(k,x,y,t)){setMsg(k==='door'?(S.rooms.retro?'La porta va nello spazio dietro le scrivanie':'Serve prima il retrosportello'):(k==='totem'&&hasTotem())||((k==='atm'||k==='safe')&&S.objs.some(o=>o.k===k))?'Ce n’è già uno':k==='desk'?'La prima scrivania parte da un lato in fondo, le altre vanno attaccate':k==='rdesk'?'Si mette nel retrosportello (massimo 2)':k==='pdesk'?'Il banco va lungo il muro di fondo della sala postini':'Qui non si può: serve spazio libero e il passaggio deve restare libero');return;}
  if(k==='door'){S.rooms.rd.push(x);S.cash-=cost;save();ui();return;}
@@ -1023,12 +1041,12 @@ function removeAt(x,y){
  if(o.k==='cons'){setMsg('La scrivania fa parte della sala consulenza');return;}
  let r=(costOf(o.k,o.t)+(o.eq||[]).reduce((a,i)=>a+EQN[i].c,0))/2;
  S.objs.splice(S.objs.indexOf(o),1);S.cash+=r;assign();save();ui();setMsg('Venduto per '+eur(r));}
-function buyEq(d,id){const e=EQN[id];if(d.eq.includes(id)||S.cash<e.c||(e.req&&!d.eq.includes(e.req))||(e.needs==='totem'&&!hasTotem()))return;S.cash-=e.c;d.eq.push(id);fxPop(d.x+.5,d.y+.5);assign();save();ui();showDesk(d);}
+function buyEq(d,id){const e=EQN[id];if((UL.eq[id]||1)>S.lvl+1)return;if(d.eq.includes(id)||S.cash<e.c||(e.req&&!d.eq.includes(e.req))||(e.needs==='totem'&&!hasTotem()))return;S.cash-=e.c;d.eq.push(id);fxPop(d.x+.5,d.y+.5);assign();save();ui();showDesk(d);}
 /* ---------- interfaccia ---------- */
 function setTool(k){tool=k;selDesk=null;ui();}
 function setMsg(m){msgOverride=m;ui();clearTimeout(setMsg.t);setMsg.t=setTimeout(()=>{msgOverride='';ui();},3500);}
 function closeSheet(){fireSel=-1;$('sheet').classList.add('hidden');selDesk=null;}
-function sheet(h,back){const s=$('sheet');s.innerHTML='<div class="sh-body">'+h+'</div><div class="sh-foot"><button class="close">'+(back||'← Indietro')+'</button></div>';{const h2=s.querySelector('h2');s.classList.toggle('cap',!!h2&&/^(Arredi|Migliorie|Servizi|Sportello|Sala consulenza|Scrivania del retrosportello)$/.test(h2.textContent.trim()));}s.classList.remove('hidden');s.querySelectorAll('.close').forEach(b=>b.onclick=closeSheet);return s;}
+function sheet(h,back){const s=$('sheet');s.innerHTML='<div class="sh-body">'+h+'</div><div class="sh-foot"><button class="close">'+(back||'← Indietro')+'</button></div>';{const h2=s.querySelector('h2');s.classList.toggle('cap',!!h2&&/^(Arredi|Migliorie|Servizi|Sportello|Sala consulenza|Scrivania del retrosportello)$/.test(h2.textContent.trim()));}if(s.classList.contains('cap'))s.querySelectorAll('.row .t b').forEach(b=>{b.textContent=tc(b.textContent);});s.classList.remove('hidden');s.querySelectorAll('.close').forEach(b=>b.onclick=closeSheet);return s;}
 const setTxt=(el,v)=>{if(el._v!==v){el._v=v;el.textContent=v;}};
 function ui(){
  setTxt($('cash'),eur(S.cash));
@@ -1052,12 +1070,12 @@ function ui(){
  const mh=m?'<span>'+m+'</span>'+cancel:'',mg=$('msg');if(mg._h!==mh){mg._h=mh;mg.style.display=m?'flex':'none';mg.innerHTML=mh;if(tool)$('cx').onclick=()=>setTool(null);}
 }
 function showArredi(){
- const row=(k,n,d,c,extra)=>`<div class="row"><div class="t"><b>${n}</b><span>${d?d+' · ':''}${eur(c)}</span></div><button data-k="${k}" ${S.cash<c||extra?'disabled':''}>Compra</button></div>`;
+ const row=(k,n,d,c,extra)=>{const L=ulK(k),lk=L>S.lvl+1;return `<div class="row"><div class="t"><b>${n}</b><span>${lk?'Si sblocca al livello '+L:(d?d+' · ':'')+eur(c)}</span></div><button data-k="${k}" ${S.cash<c||extra||lk?'disabled':''}>Compra</button></div>`;};
  const h='<h2>Arredi</h2><div style="font-weight:900;color:#1E56C8;margin-top:6px">Scrivanie</div>'+DESKT.map((d,i)=>row('desk:'+i,d.n,'',d.c)).join('')+
  '<div style="font-weight:900;color:#1E56C8;margin-top:12px">Sedie al pubblico</div>'+CHAIRT.map((d,i)=>row('chair:'+i,d.n,'',d.c)).join('')+
- '<div style="font-weight:900;color:#1E56C8;margin-top:12px">Armadi</div>'+WT.map((w,i)=>row('ward:'+i,w.n,w.kind==='doc'?'Per ritiri di raccomandate e pacchi':w.kind==='cas'?'Per la casella postale':'Per i soldi',w.c)).join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Poster promozionali</div>'+POSTER.map((p,i)=>p.rare&&!S.goals[p.rare]?'':row('poster:'+i,p.n,p.rare?'Premio · si attacca alle pareti senza finestre':'Si attacca alle pareti senza finestre',p.c)).join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Area relax</div>'+DECO.map((d,i)=>d.g==='r'?row('deco:'+i,d.n,d.d,d.c):'').join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Piante</div>'+DECO.map((d,i)=>d.g==='p'?row('deco:'+i,d.n,d.d,d.c):'').join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Per abbellire</div>'+DECO.map((d,i)=>d.g==='a'?row('deco:'+i,d.n,d.d,d.c):'').join('')+(DECO.some(d=>d.g==='x'&&S.found[d.rare])?'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Pezzi rari</div>'+DECO.map((d,i)=>d.g==='x'&&S.found[d.rare]?row('deco:'+i,d.n,'Nuovo! Pezzo raro',d.c):'').join(''):'')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Bagno</div>'+BAGNI.map((b,i)=>S.objs.some(o=>o.k==='wc'&&o.t===i)?'':row('wc:'+i,b.n,i===0?'Per tutti':(S.lvl<4?'Si sblocca al livello 5':'Servizio separato'),b.c,i>0&&S.lvl<4)).join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Altro</div>'+
- `<div class="row"><div class="t"><b>Totem con i numeri</b><span>${hasTotem()?'Già presente':eur(COST.totem)+' · i clienti prendono il numero. I display allo sportello si comprano dallo sportello'}</span></div>${hasTotem()?'':`<button data-k="totem" ${S.cash<COST.totem?'disabled':''}>Compra</button>`}</div>`+
- [['atm','ATM','Si mette ovunque, anche fuori davanti. Guadagni a fine giornata dai prelievi (commissione '+eur(ATM_FEE)+')'],['safe','Cassaforte','']].map(([k,n,d])=>{const have=S.objs.some(o=>o.k===k);return `<div class="row"><div class="t"><b>${n}</b><span>${have?'Già presente':(d?d+' · ':'')+eur(COST[k])}</span></div>${have?'':`<button data-k="${k}" ${S.cash<COST[k]?'disabled':''}>Compra</button>`}</div>`;}).join('')+
+ '<div style="font-weight:900;color:#1E56C8;margin-top:12px">Armadi</div>'+WT.map((w,i)=>row('ward:'+i,w.n,w.kind==='doc'?'Per ritiri di raccomandate e pacchi':w.kind==='cas'?'Per la casella postale':'Per i soldi',w.c)).join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Poster promozionali</div>'+POSTER.map((p,i)=>p.rare&&!S.goals[p.rare]?'':row('poster:'+i,p.n,p.rare?'Premio · si attacca alle pareti senza finestre':'Si attacca alle pareti senza finestre',p.c)).join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Area relax</div>'+DECO.map((d,i)=>d.g==='r'?row('deco:'+i,d.n,d.d,d.c):'').join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Piante</div>'+DECO.map((d,i)=>d.g==='p'?row('deco:'+i,d.n,d.d,d.c):'').join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Per abbellire</div>'+DECO.map((d,i)=>d.g==='a'?row('deco:'+i,d.n,d.d,d.c):'').join('')+(DECO.some(d=>d.g==='x'&&S.found[d.rare])?'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Pezzi rari</div>'+DECO.map((d,i)=>d.g==='x'&&S.found[d.rare]?row('deco:'+i,d.n,'Nuovo! Pezzo raro',d.c):'').join(''):'')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Bagno</div>'+BAGNI.map((b,i)=>S.objs.some(o=>o.k==='wc'&&o.t===i)?'':row('wc:'+i,b.n,i===0?'Per tutti':'Servizio separato',b.c,false)).join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Altro</div>'+
+ `<div class="row"><div class="t"><b>Totem con i numeri</b><span>${hasTotem()?'Già presente':UL.totem>S.lvl+1?'Si sblocca al livello '+UL.totem:eur(COST.totem)+' · i clienti prendono il numero. I display allo sportello si comprano dallo sportello'}</span></div>${hasTotem()?'':`<button data-k="totem" ${S.cash<COST.totem||UL.totem>S.lvl+1?'disabled':''}>Compra</button>`}</div>`+
+ [['atm','ATM','Si mette ovunque, anche fuori davanti. Guadagni a fine giornata dai prelievi (commissione '+eur(ATM_FEE)+')'],['safe','Cassaforte','']].map(([k,n,d])=>{const have=S.objs.some(o=>o.k===k);return `<div class="row"><div class="t"><b>${n}</b><span>${have?'Già presente':UL[k]>S.lvl+1?'Si sblocca al livello '+UL[k]:(d?d+' · ':'')+eur(COST[k])}</span></div>${have?'':`<button data-k="${k}" ${S.cash<COST[k]||UL[k]>S.lvl+1?'disabled':''}>Compra</button>`}</div>`;}).join('')+
  (S.rooms.retro?row('door','Porta del retrosportello','',COST.door,false):'')+
  (S.rooms.post?row('pdesk','Banco per i portalettere','Con posta e pacchi sopra, senza PC',COST.pdesk,false):'')+
  (S.rooms.retro?row('tpc','Postazione di formazione','Per far migliorare i dipendenti · massimo 2',COST.tpc,S.objs.filter(o=>o.k==='tpc').length>=2):'')+(S.rooms.retro?row('rdesk','Scrivania del retrosportello','Solo PC · massimo 2',COST.rdesk,S.objs.filter(o=>o.k==='rdesk').length>=2):'')+
@@ -1079,8 +1097,8 @@ function showDesk(d){
  selDesk=d;
  const sv=d.k==='rdesk'?[]:svcOf(d).map(s=>s.n);
  let h=`<h2>${d.k==='cons'?'Sala consulenza':d.k==='rdesk'?'Scrivania del retrosportello':'Sportello'}</h2><div style="font-size:14px;color:#4C6A99;margin-bottom:4px">${d.st!=null?'Dipendente presente':'Manca un dipendente (Personale)'}${d.k==='rdesk'?'':'<br>Servizi: '+(sv.length?sv.join(', '):'nessuno')}</div>`;
- for(const e of (d.k==='rdesk'?[EQN.pc]:EQ)){const have=d.eq.includes(e.id),miss=(e.req&&!d.eq.includes(e.req))||(e.needs==='totem'&&!hasTotem());
-  h+=`<div class="row"><div class="t"><b>${e.n}</b><span>${have?'Installato':miss?(e.needs==='totem'&&!hasTotem()?'Serve il totem':'Serve: '+EQN[e.req].n):eur(e.c)}</span></div>${have?'':`<button data-e="${e.id}" ${(miss||S.cash<e.c)?'disabled':''}>Compra</button>`}</div>`;}
+ for(const e of (d.k==='rdesk'?[EQN.pc]:EQ)){const have=d.eq.includes(e.id),lk=(UL.eq[e.id]||1)>S.lvl+1,miss=(e.req&&!d.eq.includes(e.req))||(e.needs==='totem'&&!hasTotem());
+  h+=`<div class="row"><div class="t"><b>${e.n}</b><span>${have?'Installato':lk?'Si sblocca al livello '+UL.eq[e.id]:miss?(e.needs==='totem'&&!hasTotem()?'Serve il totem':'Serve: '+EQN[e.req].n):eur(e.c)}</span></div>${have?'':`<button data-e="${e.id}" ${(miss||lk||S.cash<e.c)?'disabled':''}>Compra</button>`}</div>`;}
  if(d.eq.includes('pc'))h+=`<div class="row"><div class="t"><b>Manutenzione</b><span>Stato attrezzature: ${Math.round(wearOf(d))}% · ${eur(maintCost(d))}</span></div><button id="mt" ${(S.cash<maintCost(d)||wearOf(d)>=99)?'disabled':''}>Ripara</button></div>`;
  const ref=(costOf(d.k,d.t)+d.eq.reduce((a,i)=>a+EQN[i].c,0))/2;
  h+=`<div class="row"><div class="t"><b>Vendi</b><span>Rimborso ${eur(ref)}</span></div><button class="sell" id="sd" ${(phase==='open'||phase==='closing'||d.k==='cons')?'disabled':''}>Vendi</button></div>`;
@@ -1091,7 +1109,7 @@ function showDesk(d){
 let fireSel=-1;
 function freeX(a,b,fn){const xs=[];for(let x=a;x<=b;x++)xs.push(x);xs.sort((p,q)=>Math.abs(p-8)-Math.abs(q-8));for(const x of xs)if(fn(x))return x;return null;}
 function buyRoom(kind){
- const f=fr(),R=S.rooms,h=f.y1-f.y0+1;
+ const f=fr(),R=S.rooms,h=f.y1-f.y0+1;if(S.lvl+1<(kind==='retro'?4:kind==='post'?7:10))return;
  if(S.cash<ROOMC[kind])return;
  if(kind==='retro'){if(R.retro)return;R.retro=1;}
  else if(kind==='post'){if(!R.retro||R.post)return;const ry=f.y0-(RD+R.rl),x=freeX(f.x0,f.x1,t=>!objAt(t,ry));if(x==null){setMsg('Libera una casella in fondo al retrosportello');return;}R.pdx=x;R.post=1;}
@@ -1100,7 +1118,7 @@ function buyRoom(kind){
   R.cons++;S.objs.push({k:'cons',x:f.x1+3,y:f.y1-CD*(i+1)+1,t:0,eq:[],st:null,cur:null});}
  S.cash-=ROOMC[kind];assign();save();ui();showMig();}
 function buyUp(kind){
- const R=S.rooms,lv=kind==='retro'?R.rl:R.pl,c=(kind==='retro'?RUP:PUP)[lv];if(lv>=2||S.cash<c)return;
+ const R=S.rooms,lv=kind==='retro'?R.rl:R.pl,c=(kind==='retro'?RUP:PUP)[lv];if(lv>=2||S.cash<c||S.lvl+1<(kind==='retro'?UL.mig.rup:UL.mig.pup)[lv])return;
  const tags=S.objs.map(o=>{const r=roomOf(o.x,o.y);return r?r.id:'';});
  S.cash-=c;if(kind==='retro'){R.rl++;S.objs.forEach((o,i)=>{if(tags[i]==='post')o.y-=1;});}else R.pl++;
  save();ui();showMig();}
@@ -1114,11 +1132,11 @@ function doExpand(c){
 function showMig(){
  const lvl=S.lvl,last=lvl>=ROOMS.length-1,c=EXP_C[lvl+1];
  const s=sheet(`<h2>Migliorie</h2>
- ${(()=>{const need=S.lvl<2;return `<div class="row"><div class="t"><b>Seconda porta</b><span>${S.door2?'Acquistata':need?'Serve almeno l’ufficio di livello 3':eur(1500)}</span></div>${S.door2||need?'':`<button id="d2" ${S.cash<1500?'disabled':''}>Compra</button>`}</div>`;})()}
+ ${(()=>{const need=S.lvl<2;return `<div class="row"><div class="t"><b>Seconda porta</b><span>${S.door2?'Acquistata':need?'Serve almeno l’ufficio di livello 3':eur(MC.door2)}</span></div>${S.door2||need?'':`<button id="d2" ${S.cash<MC.door2?'disabled':''}>Compra</button>`}</div>`;})()}
  ${(()=>{const a=S.alarm||0,n=ALARM[a+1];return `<div class="row"><div class="t"><b>Allarme</b><span>${ALARM[a].n}${n?' · prossimo: '+n.n+' '+eur(n.c):' · massimo'}</span></div>${n?`<button id="al" ${S.cash<n.c?'disabled':''}>Compra</button>`:''}</div>`;})()}
  ${(()=>{const t=S.doorT||0,n=DOORT[t+1];return `<div class="row"><div class="t"><b>Porta d’ingresso</b><span>${DOORT[t].n}${n?' · prossima: '+n.n+' '+eur(n.c):' · massima sicurezza'}</span></div>${n?`<button id="dt" ${S.cash<n.c?'disabled':''}>Cambia</button>`:''}</div>`;})()}
- ${[['ac','Condizionatore',1200],['heat','Riscaldamento',1000],['tint','Vetri oscurati',900]].map(([k,n,c])=>`<div class="row"><div class="t"><b>${n}</b><span>${S[k]?'Acquistato':eur(c)}</span></div>${S[k]?'':`<button data-u="${k}" data-c="${c}" ${S.cash<c?'disabled':''}>Compra</button>`}</div>`).join('')}
- <div class="row"><div class="t"><b>Passerella per disabili</b><span>${S.ramp?'Acquistata':eur(800)}</span></div>${S.ramp?'':`<button id="rp" ${S.cash<800?'disabled':''}>Compra</button>`}</div>
+ ${[['ac','Condizionatore',MC.ac],['heat','Riscaldamento',MC.heat],['tint','Vetri oscurati',MC.tint]].map(([k,n,c])=>`<div class="row"><div class="t"><b>${n}</b><span>${S[k]?'Acquistato':eur(c)}</span></div>${S[k]?'':`<button data-u="${k}" data-c="${c}" ${S.cash<c?'disabled':''}>Compra</button>`}</div>`).join('')}
+ <div class="row"><div class="t"><b>Passerella per disabili</b><span>${S.ramp?'Acquistata':eur(MC.ramp)}</span></div>${S.ramp?'':`<button id="rp" ${S.cash<MC.ramp?'disabled':''}>Compra</button>`}</div>
  ${(()=>{const R=S.rooms,f=fr(),h=f.y1-f.y0+1,i=R.cons,canC=h>=CD*(i+1)&&i<8;const row=(id,n,d,c,dis,have,att)=>`<div class="row"><div class="t"><b>${n}</b><span>${d}</span></div>${have?'':`<button data-${att||'r'}="${id}" ${(dis||S.cash<c)?'disabled':''}>Compra</button>`}</div>`;
   return row('retro','Retrosportello',R.retro?'Acquistato':eur(ROOMC.retro),ROOMC.retro,false,R.retro)+
   (R.retro?row('retro','Ingrandisci il retrosportello','Livello '+(R.rl+1)+' di 3'+(R.rl<2?' · '+eur(RUP[R.rl]):' · massimo'),RUP[R.rl]||0,R.rl>=2,R.rl>=2,'up'):'')+
@@ -1133,13 +1151,13 @@ function showMig(){
  ${S.rooms.post?(()=>{const v=S.veh||0,n=VEH[v+1];return `<div class="row"><div class="t"><b>Mezzi dei postini</b><span>${VEH[v].n}${n?' · prossimo: '+n.n+' '+eur(n.c):' · massimo'} · consegne per postino: ${VEH[v].cap}</span></div>${n?`<button id="vh" ${S.cash<n.c?'disabled':''}>Compra</button>`:''}</div>`;})():''}
  <div class="row"><div class="t"><b>Ingrandisci ufficio</b><span>${last?'Dimensione massima':'Livello '+(lvl+1)+' di '+ROOMS.length+' · '+ROOMS[lvl+1].join('×')+' caselle · '+eur(c)}</span></div>${last?'':`<button id="exp" ${S.cash<c?'disabled':''}>Ingrandisci</button>`}</div>`);
  
-s.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>buyRoom(b.dataset.r));s.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>buyUp(b.dataset.up));
+lockMig(s);s.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>buyRoom(b.dataset.r));s.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>buyUp(b.dataset.up));
  s.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{const c=+b.dataset.c;if(S.cash<c)return;S.cash-=c;S[b.dataset.u]=true;save();ui();showMig();});
- const alb=s.querySelector('#al');if(alb)alb.onclick=()=>{const n=ALARM[(S.alarm||0)+1];if(!n||S.cash<n.c)return;S.cash-=n.c;S.alarm=(S.alarm||0)+1;save();ui();showMig();};
- const dtb=s.querySelector('#dt');if(dtb)dtb.onclick=()=>{const n=DOORT[(S.doorT||0)+1];if(!n||S.cash<n.c)return;S.cash-=n.c;S.doorT=(S.doorT||0)+1;save();ui();showMig();};
- const d2=s.querySelector('#d2');if(d2)d2.onclick=()=>{S.cash-=1500;S.door2=true;save();ui();showMig();};const rp=s.querySelector('#rp');if(rp)rp.onclick=()=>{S.cash-=800;S.ramp=true;save();ui();showMig();};
+ const alb=s.querySelector('#al');if(alb)alb.onclick=()=>{const n=ALARM[(S.alarm||0)+1];if(!n||S.cash<n.c||UL.mig.alarm[S.alarm||0]>S.lvl+1)return;S.cash-=n.c;S.alarm=(S.alarm||0)+1;save();ui();showMig();};
+ const dtb=s.querySelector('#dt');if(dtb)dtb.onclick=()=>{const n=DOORT[(S.doorT||0)+1];if(!n||S.cash<n.c||UL.mig.doorT[S.doorT||0]>S.lvl+1)return;S.cash-=n.c;S.doorT=(S.doorT||0)+1;save();ui();showMig();};
+ const d2=s.querySelector('#d2');if(d2)d2.onclick=()=>{S.cash-=MC.door2;S.door2=true;save();ui();showMig();};const rp=s.querySelector('#rp');if(rp)rp.onclick=()=>{if(S.cash<MC.ramp)return;S.cash-=MC.ramp;S.ramp=true;save();ui();showMig();};
  const e=s.querySelector('#exp');if(e)e.onclick=()=>{doExpand(c);showMig();};
- s.querySelector('#sg').onclick=showSign;s.querySelector('#pb').onclick=showAds;const cmb=s.querySelector('#cm');if(cmb)cmb.onclick=()=>{const n=CAMS[(S.cam||0)+1];if(!n||S.cash<n.c)return;S.cash-=n.c;S.cam=(S.cam||0)+1;save();ui();showMig();};s.querySelector('#fl').onclick=()=>showStyle('floor');s.querySelector('#wl').onclick=()=>showStyle('wall');const vb=s.querySelector('#vh');if(vb)vb.onclick=()=>{const n=VEH[(S.veh||0)+1];if(!n||S.cash<n.c)return;S.cash-=n.c;S.veh=(S.veh||0)+1;save();ui();showMig();};
+ s.querySelector('#sg').onclick=showSign;s.querySelector('#pb').onclick=showAds;const cmb=s.querySelector('#cm');if(cmb)cmb.onclick=()=>{const n=CAMS[(S.cam||0)+1];if(!n||S.cash<n.c||UL.mig.cam[S.cam||0]>S.lvl+1)return;S.cash-=n.c;S.cam=(S.cam||0)+1;save();ui();showMig();};s.querySelector('#fl').onclick=()=>showStyle('floor');s.querySelector('#wl').onclick=()=>showStyle('wall');const vb=s.querySelector('#vh');if(vb)vb.onclick=()=>{const n=VEH[(S.veh||0)+1];if(!n||S.cash<n.c||UL.mig.veh[S.veh||0]>S.lvl+1)return;S.cash-=n.c;S.veh=(S.veh||0)+1;save();ui();showMig();};
 }
 function showSummary(){const _sh=sheet;
  
@@ -1197,7 +1215,7 @@ function frame(now){
  let dr=Math.min(.1,(now-last)/1000);last=now;
  if((phase==='open'||phase==='closing')&&speed>0){let dm=dr/MINSEC*speed;while(dm>0){const s=Math.min(.25,dm);tick(s);dm-=s;if(phase==='summary'||phase==='prep')break;}ui();}
  if(++FC%30===0)checkGoals();draw();requestAnimationFrame(frame);}
-normNames();fixLayout();startDayPrep();assign();ui();requestAnimationFrame(frame);
+normNames();applyCosts();fixLayout();startDayPrep();assign();ui();requestAnimationFrame(frame);
 window.__G={zm:()=>ZM,showAds,showComp,compDaily,CAMS,ADS,COMP,startTour,finishStart,playStart,confetti,lightK:()=>lightK(),setT:v=>{t=v;},showDiff,showEnd,endCond,chooseDiff,spawnInspector,finishInspect,dirt:()=>S.dirt,showSign,startDayPrep,showPerson,showStaff,hitPerson,force:o=>{if(o.evt)stats.evt=EVTS.find(e=>e.id===o.evt);if(o.black)stats.black=[t,t+9999];if(o.sp){const c=custs.find(c=>!c.compOf);if(c)c.sp=o.sp;}},checkGoals,showGoals,GOALS,zoom:z=>zoomAt(cv.width/2,cv.height/2,z),pan:(x,y)=>{ZPX=x;ZPY=y;},doExpand,rooms,bfs,fr,buyRoom,setView:v=>{view=v;},packs:()=>S.packs,buyPack:id=>{S.cash-=PKN[id].c;S.packs[id]=1;},S:()=>S,tick,openDay,get phase(){return phase;},setSpeed:v=>speed=v,place,buyEq,desks,custs:()=>custs,hire:()=>{S.staff.push(newHire());assign();},stfKeys:()=>new Set(STAFFR.map((_,i)=>sKey(i))).size,staffF:()=>[...S.staff,...S.postmen].map(m=>m.f),stats:()=>stats,endDay};
 };
 </script><script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script></body></html>
