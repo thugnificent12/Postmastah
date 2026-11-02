@@ -640,7 +640,9 @@ function showStyle(kind){const T=kind==='floor'?FLOORT:WALLT,key=kind==='floor'?
 const ST=$('start');
 function finishStart(){ST.style.display='none';ST.classList.remove('s2');nextBn();if(!S.tutDone&&S.day===1&&!S.hist.length)setTimeout(startTour,350);}
 function playStart(){ST.classList.add('s2');$('st2img').src=$('stt').src;const d=$('st2d');
- if(S.diffSet){d.innerHTML='<div class="dc"><div class="t"><b>Difficoltà: '+DF().n+'</b><span>La difficoltà si sceglie solo all’inizio di una nuova partita.</span></div><button id="st2c">Continua</button></div>';$('st2c').onclick=finishStart;}
+ if(S.diffSet){d.innerHTML='<div class="dc"><div class="t"><b>Difficoltà: '+DF().n+'</b><span>La difficoltà si sceglie solo all’inizio di una nuova partita.</span></div><button id="st2c">Continua</button></div>';$('st2c').onclick=finishStart;
+  d.insertAdjacentHTML('beforeend','<div class="dc"><div class="t"><b>Nuova partita</b><span>Cancella la partita e ricomincia da zero.</span></div><button id="st2n" style="background:#E5484D;color:#fff;border-bottom-color:#A52A2F">Nuova</button></div>');
+  $('st2n').onclick=()=>{const b=$('st2n');if(b.dataset.ok!=='1'){b.dataset.ok='1';b.textContent='Sì, cancella tutto';return;}try{Object.keys(localStorage).filter(k=>k.indexOf('uptycoon')===0).forEach(k=>localStorage.removeItem(k));}catch(e){}location.reload();};}
  else{d.innerHTML='<div style="font-weight:900;font-size:18px;margin-bottom:4px">Scegli la difficoltà</div><div style="font-size:13px;opacity:.8">Si sceglie adesso e non si cambia più.</div>'+DIFF.map((x,i)=>'<div class="dc"><div class="t"><b>'+x.n+'</b><span>'+x.d+'</span></div><button data-d="'+i+'">Scegli</button></div>').join('');d.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{chooseDiff(+b.dataset.d);finishStart();});}}
 function showRank(){showStats();const h=document.querySelector('#sheet h2');if(h)h.textContent='Classifiche';}
 function exitGame(){const s=sheet('<h2>Uscire dal gioco?</h2><div style="color:#5B6B86">Il gioco salva da solo.</div><div class="row"><div class="t"><b>Esci</b></div><button class="sell" id="xy">Esci</button></div>','Resta');
