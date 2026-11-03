@@ -41,12 +41,12 @@ jobs:
         run: ./gradlew assembleDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: the-postmaster-apk
+          name: il-direttore-ufficio-apk
           path: capacitor/android/app/build/outputs/apk/debug/app-debug.apk
       - name: Pubblica l'APK nelle Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp capacitor/android/app/build/outputs/apk/debug/app-debug.apk the-postmaster.apk
+          cp capacitor/android/app/build/outputs/apk/debug/app-debug.apk il-direttore-ufficio.apk
           gh release delete apk-latest --yes --cleanup-tag --repo ${{ github.repository }} || true
-          gh release create apk-latest the-postmaster.apk --repo ${{ github.repository }} --target main --title "The Postmaster (Android)" --notes "Tocca il file the-postmaster.apk per scaricarlo e installarlo."
+          gh release create apk-latest il-direttore-ufficio.apk --repo ${{ github.repository }} --target main --title "Il Direttore dell'Ufficio (Android)" --notes "Tocca il file il-direttore-ufficio.apk per scaricarlo e installarlo."
