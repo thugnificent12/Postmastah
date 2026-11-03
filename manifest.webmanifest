@@ -1,6 +1,6 @@
 {
- "name": "The Postmaster",
- "short_name": "Postmaster",
+ "name": "Il Direttore dell’Ufficio",
+ "short_name": "Il Direttore",
  "description": "Gioco gestionale di ufficio postale",
  "start_url": "./index.html",
  "scope": "./",
