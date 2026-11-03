@@ -5,5 +5,9 @@
   "server": {
     "url": "https://thugnificent12.github.io/Postmastah/",
     "cleartext": false
+  },
+  "backgroundColor": "#0b2f1c",
+  "android": {
+    "backgroundColor": "#0b2f1c"
   }
 }

@@ -32,6 +32,18 @@ jobs:
             cp ../android-icons/$d.png android/app/src/main/res/mipmap-$d/ic_launcher_foreground.png
           done
           npx cap sync android
+          python3 - <<'PY'
+          import glob,zlib,struct
+          def png(r,g,b):
+              raw=b'\x00'+bytes([r,g,b])
+              ch=lambda t,d:struct.pack('>I',len(d))+t+d+struct.pack('>I',zlib.crc32(t+d)&0xffffffff)
+              return b'\x89PNG\r\n\x1a\n'+ch(b'IHDR',struct.pack('>IIBBBBB',1,1,8,2,0,0,0))+ch(b'IDAT',zlib.compress(raw))+ch(b'IEND',b'')
+          for f in glob.glob('android/app/src/main/res/drawable*/splash.png'):
+              open(f,'wb').write(png(11,47,28))
+          for f in glob.glob('android/app/src/main/res/values/colors.xml')+glob.glob('android/app/src/main/res/values/styles.xml'):
+              s=open(f).read().replace('#3F51B5','#0b2f1c').replace('#303F9F','#0b2f1c').replace('#FF4081','#0b2f1c')
+              open(f,'w').write(s)
+          PY
       - name: Firma sempre con la stessa chiave (cosi' gli aggiornamenti si installano sopra)
         run: |
           mkdir -p ~/.android
