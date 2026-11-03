@@ -5,7 +5,7 @@
 <style>
 :root{--chrome:#17233A;--chrome2:#243B64;--amber:#F5B83D;--ink:#14233F;--muted:#5B6B86;--line:#DFE5EE;--good:#1C7C45;--bad:#C0342B}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:#1B2433;color:#fff;font-family:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;overflow:hidden;touch-action:manipulation}
+html,body{margin:0;height:100%;background:#0b2f1c;color:#fff;font-family:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;overflow:hidden;touch-action:manipulation}
 #app{display:flex;flex-direction:column;height:100%;max-width:900px;margin:0 auto;position:relative}
 #top{display:flex;align-items:center;gap:5px;padding:8px 6px;background:var(--chrome)}
 #cash{font-weight:900;font-size:16px;color:var(--amber);min-width:0;flex:0 1 auto;white-space:nowrap}
@@ -1025,7 +1025,7 @@ function drawOut(){
  {const _L=lightK();NK=_L.k;NTW=_L.tw;LG.length=0;}
  const w0=ROOMS[S.lvl][0]*TW,w=w0+(S.rooms.cons?CW*TW:0),Hb=150,vw=w+540,vh=Hb+310;
  const sc=Math.min(cv.width/vw,cv.height/vh),ox=(cv.width-vw*sc)/2,oy=(cv.height-vh*sc)/2;
- g.setTransform(1,0,0,1,0,0);g.fillStyle='#1B2433';g.fillRect(0,0,cv.width,cv.height);
+ g.setTransform(1,0,0,1,0,0);g.fillStyle="#0b2f1c";g.fillRect(0,0,cv.width,cv.height);
  g.setTransform(sc,0,0,sc,ox,oy);
  const sk=g.createLinearGradient(0,0,0,vh);sk.addColorStop(0,'#BFDFFF');sk.addColorStop(1,'#EAF4FF');g.fillStyle='#BFDFFF';g.fillRect(-3000,-3000,9000,3000);g.fillStyle=sk;g.fillRect(-3000,0,9000,vh);
  const gY=50+Hb,bx=(vw-w)/2;
@@ -1442,12 +1442,17 @@ cv.addEventListener('pointermove',e=>{
 const endPt=e=>{PT.delete(e.pointerId);if(PINCH&&PT.size<2)PINCH=null;if(DRAG&&DRAG.id===e.pointerId){const d=DRAG;DRAG=null;if(!d.moved)tap(d.e);}};
 cv.addEventListener('pointerup',endPt);cv.addEventListener('pointercancel',endPt);
 cv.addEventListener('wheel',e=>{if(!zoomOK())return;e.preventDefault();const p=cpos(e);zoomAt(p[0],p[1],ZM*(e.deltaY<0?1.15:1/1.15));},{passive:false});
+/* tocco immediato sui tasti: scatta al rilascio del dito, non aspetta il click */
+let PDB=null,PUT=0;
+document.addEventListener('pointerdown',e=>{PDB=e.pointerType==='mouse'?null:(e.target.closest&&e.target.closest('button'));},true);
+document.addEventListener('pointerup',e=>{const b=e.pointerType==='mouse'?null:(e.target.closest&&e.target.closest('button'));if(b&&b===PDB&&!b.disabled){PUT=performance.now();b.click();}PDB=null;},true);
+document.addEventListener('click',e=>{if(e.isTrusted&&performance.now()-PUT<900&&e.target.closest&&e.target.closest('button')){e.stopImmediatePropagation();e.preventDefault();}},true);
 /* ---------- ciclo ---------- */
 let last=performance.now();
 function frame(now){
  let dr=Math.min(.1,(now-last)/1000);last=now;
  if((phase==='open'||phase==='closing')&&speed>0){let dm=dr/MINSEC*speed;while(dm>0){const s=Math.min(.25,dm);tick(s);dm-=s;if(phase==='summary'||phase==='prep')break;}ui();}
- if(++FC%30===0)checkGoals();draw();requestAnimationFrame(frame);}
+ if(++FC%30===0)checkGoals();if(ST.style.display==='none'&&$('sheet').classList.contains('hidden'))draw();requestAnimationFrame(frame);}
 normNames();applyCosts();if(LANG!=='it')setLang(LANG);fixLayout();startDayPrep();assign();ui();requestAnimationFrame(frame);
 window.__G={showRank,showRescue,redCheck,bankrupt,showGameOver,scoreNow,showBacheca,grantStamp,showMissionOffer,MIS,yearCheck,showPlan,showChoice,CHEV,showEvalResult,showEval,mlog,cImg:(i)=>cImg(i),SPR:()=>SPR,movers:(n)=>movers(n),envL:()=>envL(),zm:()=>ZM,showAds,showComp,compDaily,CAMS,ADS,COMP,startTour,finishStart,playStart,confetti,lightK:()=>lightK(),setT:v=>{t=v;},showDiff,showEnd,endCond,chooseDiff,spawnInspector,finishInspect,dirt:()=>S.dirt,showSign,startDayPrep,showPerson,showStaff,hitPerson,force:o=>{if(o.evt)stats.evt=EVTS.find(e=>e.id===o.evt);if(o.black)stats.black=[t,t+9999];if(o.sp){const c=custs.find(c=>!c.compOf);if(c)c.sp=o.sp;}},checkGoals,showGoals,GOALS,zoom:z=>zoomAt(cv.width/2,cv.height/2,z),pan:(x,y)=>{ZPX=x;ZPY=y;},doExpand,rooms,bfs,fr,buyRoom,setView:v=>{view=v;},packs:()=>S.packs,buyPack:id=>{S.cash-=PKN[id].c;S.packs[id]=1;},S:()=>S,tick,openDay,get phase(){return phase;},setSpeed:v=>speed=v,place,buyEq,desks,custs:()=>custs,hire:()=>{S.staff.push(newHire());assign();},stfKeys:()=>new Set(STAFFR.map((_,i)=>sKey(i))).size,staffF:()=>[...S.staff,...S.postmen].map(m=>m.f),stats:()=>stats,endDay};
 };
