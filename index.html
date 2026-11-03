@@ -218,11 +218,13 @@ if(!S.packs)S.packs={};if(!S.rooms)S.rooms={};S.rooms=Object.assign({retro:0,pos
 S.staff=S.staff.map(x=>typeof x==='number'?{f:x,sp:1,er:.03}:x);if(!S.goals)S.goals={};if(S.noRob==null)S.noRob=0;if(!S.found)S.found={};if(S.best==null)S.best=0;
 const PKN_OK=k=>typeof PKN!=='undefined'&&!!PKN[k];
 const NAMES=['Marco','Giulia','Luca','Sara','Matteo','Elena','Andrea','Chiara','Davide','Marta','Paolo','Laura','Simone','Giorgia','Alessio','Francesca','Stefano','Valentina','Roberto','Anna','Fabio','Silvia','Daniele','Elisa','Riccardo','Federica','Nicola','Martina','Giorgio','Alice','Enrico','Irene','Franco','Rosa','Carlo','Teresa','Diego','Monica','Pietro','Claudia','Tommaso','Beatrice','Gianni','Lucia','Mario','Sofia','Antonio','Emma','Filippo','Noemi'];
-const rndName=()=>NAMES[Math.floor(Math.random()*NAMES.length)]+' '+String.fromCharCode(65+Math.floor(Math.random()*26))+'.';
+const SGEN='110001000101110100100111011011000011101110110101001101111111111101100111111100101110011011110000000011000000011101011001001011001011000000000100001110011111001011110111110011101100011110011110100111010000010110110000110001001011110010000101110110100000100100010011101000010110001110111111110010010110011001101111110001100011010001110111000101100011010101111010011110101010100010100111100101110001110010000001110000111111101110001110101101110011101000001001001001110101111101011100000000101111010010110000011001011001110001000110110110110100110100100110101111010001010110111010101101111001011011100110';
+const NAMF=['Giulia', 'Sara', 'Elena', 'Chiara', 'Marta', 'Laura', 'Giorgia', 'Francesca', 'Valentina', 'Anna', 'Silvia', 'Elisa', 'Federica', 'Martina', 'Alice', 'Irene', 'Rosa', 'Teresa', 'Monica', 'Claudia', 'Beatrice', 'Lucia', 'Sofia', 'Emma', 'Noemi'],NAMM=['Marco', 'Luca', 'Matteo', 'Andrea', 'Davide', 'Paolo', 'Simone', 'Alessio', 'Stefano', 'Roberto', 'Fabio', 'Daniele', 'Riccardo', 'Nicola', 'Giorgio', 'Enrico', 'Franco', 'Carlo', 'Diego', 'Pietro', 'Tommaso', 'Gianni', 'Mario', 'Antonio', 'Filippo'];
+const rndName=f=>{const L=f!=null&&SGEN[f]==='1'?NAMF:f!=null?NAMM:NAMES;return L[Math.floor(Math.random()*L.length)]+' '+String.fromCharCode(65+Math.floor(Math.random()*26))+'.';};
 const SKC={};
 const sKey=f=>SKC[f]||(SKC[f]=[...new Set((STAFFR[f].match(/#[0-9a-fA-F]{6}\b/g)||[]))].sort().join(''));
 function freshFace(skip){const used=new Set([...S.staff,...S.postmen].filter(m=>m!==skip).map(m=>m.f)),uk=new Set([...used].map(sKey));let n=0,f;do{f=Math.floor(Math.random()*STAFFR.length);n++;}while((used.has(f)||(uk.has(sKey(f))&&n<600))&&n<5000);return f;}
-const newHire=()=>({f:freshFace(),nm:rndName(),hd:S.day,sv:0,sh:0,off:0,tr:0,trn:0,sp:Math.random()<.06?1.6:+(.8+Math.random()*.45).toFixed(2),er:+(Math.random()*.12).toFixed(3),...pickTraits()});
+const newHire=()=>{const f=freshFace();return {f,nm:rndName(f),hd:S.day,sv:0,sh:0,off:0,tr:0,trn:0,sp:Math.random()<.06?1.6:+(.8+Math.random()*.45).toFixed(2),er:+(Math.random()*.12).toFixed(3),...pickTraits()};};
 const TRP={simp:['Simpatico','I clienti aspettano più volentieri'],inst:['Instancabile','Nel pomeriggio va più veloce'],impa:['Impara in fretta','Formazione di 1 giorno'],punt:['Sempre puntuale','Non va mai in ferie'],econ:['Economico','Stipendio più basso (−10%)'],anz:['Gentile con gli anziani','Più veloce con pensioni e ritiri'],prep:['Preparato','Serve più in fretta e sbaglia meno'],mem:['Memoria di ferro','Non sbaglia nei servizi difficili'],ling:['Parla le lingue','Più veloce con i servizi esteri'],pcb:['Bravo con i computer','Le attrezzature si usurano meno'],ord:['Ordinato','Il locale si sporca meno'],calm:['Calmo','Se c’è una rapina perdi di meno'],fila:['Bravo con la fila','Con tanta fila va più veloce'],fid:['Fidato','Multe più basse nelle ispezioni']};
 const TRD={scor:['Scorbutico','I clienti perdono pazienza prima'],stan:['Si stanca presto','Nel pomeriggio va più piano'],chia:['Chiacchierone','Ogni tanto perde tempo'],pigr:['Pigro','Formazione di 3 giorni'],aume:['Vuole aumenti','Stipendio più alto (+15%)'],ferie:['Va spesso in ferie','Più ferie degli altri'],ign:['Ignorante','Serve più piano e sbaglia di più'],pcn:['Imbranato col PC','Più lento con i servizi al computer'],dist:['Distrugge le cose','Le attrezzature si usurano di più'],dis:['Disordinato','Il locale si sporca di più'],fifo:['Fifone','Se c’è una rapina perdi di più'],tilt:['Va in tilt con la coda','Con tanta fila va più piano'],tard:['Fa tardi','Nella prima ora va più piano'],lit:['Litiga con i colleghi','Se siete in 4 o più, tutti vanno un po’ più piano']};
 const TROPP={simp:'scor',scor:'simp',inst:'stan',stan:'inst',punt:'ferie',ferie:'punt',econ:'aume',aume:'econ',prep:'ign',ign:'prep',pcb:'dist',dist:'pcb',ord:'dis',dis:'ord',calm:'fifo',fifo:'calm',fila:'tilt',tilt:'fila'};
@@ -300,6 +302,8 @@ const svcOf=d=>SERV.filter(s=>(!s.pack||S.packs[s.pack])&&(s.cons?d.k==='cons':d
 /* ---------- clienti ---------- */
 function availList(){return SERV.filter(svcAvail);}
 function arrRate(){const av=availList(),aw=av.reduce((a,x)=>a+x.w,0),share=aw/TOTW,tod=t<540?.6+(t-480)/60*.4:t<600?1:t<690?1.2:t<840?.9:t<1020?1.0:.75;return (.26+Math.min(S.day,60)*.002)*(.35+.65*share)*tod*((stats&&stats.evt&&stats.evt.mult)||1)*wxMult()*(S.dirt.length>15?.9:1)*Math.pow(Math.max(1,staffed().filter(d=>d.k==='desk').length),.75)*(.8+.4*(S.rep||50)/100)*adMult()*compMult();}
+const APD=34;
+function approach(c,x){const side=Math.random()<.5?-1:1;c.side=side;const comp=custs.find(k=>k.compOf===c);c.path=[[x,13]].concat(c.path);c.x=x+side*APD+.5;c.y=13.5;c.born=t+(APD+2.5)/1.3;if(comp){comp.x=c.x+.4;comp.y=c.y+.1;comp.born=c.born;}}
 function spawn(st){
  const av=availList();if(!av.length)return;
  const wOf=x=>x.w*(stats&&stats.evt&&stats.evt.boost&&stats.evt.boost.includes(x.pack)?stats.evt.k:1);
@@ -312,7 +316,8 @@ const c={id:++cid,spr:Math.floor(Math.random()*CUSTR.length),svc:s.id,x:x+.5,y:1
  custs.push(c);
  {const ci=CUSTR[c.spr][4];if(ci>=0)custs.push({id:++cid,compOf:c,ci,svc:'comp',x:c.x+.4,y:c.y+.1,path:[],state:'follow',born:t,seat:null,d:null,rem:0,spot:null,ord:0,tk:'',spr:0});}
  if(hasTotem()&&!s.cons){const tt=S.objs.find(o=>o.k==='totem');c.state='toTotem';c.path=bfs(x,11,tt.x,tt.y+1)||[];}
- else{c.ord=++ordc;chooseSpot(c);}}
+ else{c.ord=++ordc;chooseSpot(c);}
+ approach(c,x);}
 function chooseSpot(c){
  const free=S.objs.filter(o=>o.k==='chair'&&!o.res);
  let best=null,bl=1e9;for(const o of free){const p=bfs(Math.floor(c.x),Math.floor(c.y),o.x,o.y);if(p&&p.length<bl){bl=p.length;best=o;}}
@@ -323,8 +328,8 @@ function chooseSpot(c){
 function leave(c,angry,st){
  if(c.seat){c.seat.res=null;c.seat=null;}c.spot=null;if(c.d){c.d.cur=null;c.d=null;}
  if(angry){S.rep=Math.max(0,S.rep-1.5);st.left++;if(c.reg){const i=S.reg.findIndex(r=>r.spr===c.spr);if(i>=0)S.reg.splice(i,1);}}
- c.state='leave';c.path=bfs(Math.floor(c.x),Math.floor(c.y),7,11)||[[7,11]];}
-function spawnCop(r){const k={id:++cid,spr:0,cop:true,svc:'cop',x:r.x+.35,y:r.y,path:[],state:'leave',born:t,seat:null,d:null,rem:0,spot:null,ord:0,tk:''};k.path=bfs(Math.floor(k.x),Math.floor(k.y),7,11)||[[7,11]];custs.push(k);}
+ c.state='leave';c.path=(bfs(Math.floor(c.x),Math.floor(c.y),7,11)||[[7,11]]).concat([[7,13],[7+(c.side||(Math.random()<.5?-1:1))*APD,13]]);}
+function spawnCop(r){const k={id:++cid,spr:0,cop:true,svc:'cop',x:r.x+.35,y:r.y,path:[],state:'leave',born:t,seat:null,d:null,rem:0,spot:null,ord:0,tk:''};k.path=(bfs(Math.floor(k.x),Math.floor(k.y),7,11)||[[7,11]]).concat([[7,13],[7+(Math.random()<.5?-1:1)*APD,13]]);custs.push(k);}
 function spawnRobber(){
  let best=null,bl=1e9;for(const d of staffed()){const p=bfs(7,11,d.x,d.y+1);if(p&&p.length<bl){bl=p.length;best=p;}}
  if(!best)return;
@@ -1049,7 +1054,7 @@ function drawDesk(o){
  if(o.broken){const p=iso(x+.5,y+.3,72);g.fillStyle='#D94236';g.beginPath();g.arc(p[0],p[1],10,0,7);g.fill();g.fillStyle='#fff';g.font='900 14px system-ui,sans-serif';g.textAlign='center';g.fillText('!',p[0],p[1]+5);}
 }
 function drawCust(c){
- if(c.compOf){const [px,py]=iso(c.x,c.y,0),N=performance.now()/1000,m=c.compOf,al=Math.min(1,(t-m.born)/.8);g.fillStyle='#0003';g.beginPath();g.ellipse(px,py,12,5,0,0,7);g.fill();g.save();g.globalAlpha=al;sprite(mImg(c.ci),px,py,0,0,0);g.restore();return;}
+ if(c.compOf){const [px,py]=iso(c.x,c.y,0),N=performance.now()/1000,m=c.compOf,al=1;g.fillStyle='#0003';g.beginPath();g.ellipse(px,py,12,5,0,0,7);g.fill();g.save();g.globalAlpha=al;sprite(mImg(c.ci),px,py,0,0,0);g.restore();return;}
  if(c.cop){const [px,py]=iso(c.x,c.y,0),N=performance.now()/1000;g.fillStyle='#0003';g.beginPath();g.ellipse(px,py,12,5,0,0,7);g.fill();sprite(POLI(1),px,py,0,0,0);return;}
  const s=SVN[c.svc],N=performance.now()/1000,w=(c.state==='wait'||c.state==='enter'||c.state==='toTotem'||c.state==='ticket'),ratio=(t-c.born)/(c.seat?100:60),lvl=w?(ratio<.45?0:ratio<.8?1:2):0;
  let off=0,back=!!(c.seat&&c.state==='wait'&&!c.path.length);
@@ -1062,7 +1067,7 @@ function drawCust(c){
  const bl=blinkOn(N,c.id*.37),tp=lvl>=1&&!back&&tapOn(N,c.id*.21);
  if(lvl>0||back){const v=vImg(id,raw,0,0);im=v||cImg(c.spr);}
  if(bl||tp){const v=vImg(id,raw,bl,tp);if(v)im=v;}
- const al=Math.min(1,(t-c.born)/.8);
+ const al=1;
  g.fillStyle='#0003';g.beginPath();g.ellipse(px,py,12,5,0,0,7);g.fill();
  g.save();g.globalAlpha=al;sprite(im,px,py,dy,rot,0);g.restore();
  if(c.dog&&c.svc!=='rob'&&!c.compOf)drawDog(px+18,py+2,c.dog,N+c.id);
