@@ -336,11 +336,12 @@ function leave(c,angry,st){
  if(c.seat){c.seat.res=null;c.seat=null;}c.spot=null;if(c.d){c.d.cur=null;c.d=null;}
  if(angry){S.rep=Math.max(0,S.rep-1.5);st.left++;if(c.reg){const i=S.reg.findIndex(r=>r.spr===c.spr);if(i>=0)S.reg.splice(i,1);}}
  c.state='leave';c.path=(bfs(Math.floor(c.x),Math.floor(c.y),7,11)||[[7,11]]).concat([[7,13],[7+(c.side||(Math.random()<.5?-1:1))*APD,13]]);}
+function walkOut(c){c.state='leave';c.path=(bfs(Math.floor(c.x),Math.floor(c.y),7,11)||[[7,11]]).concat([[7,13],[7+(c.side||(Math.random()<.5?-1:1))*APD,13]]);}
 function spawnCop(r){const k={id:++cid,spr:0,cop:true,svc:'cop',x:r.x+.35,y:r.y,path:[],state:'leave',born:t,seat:null,d:null,rem:0,spot:null,ord:0,tk:''};k.path=(bfs(Math.floor(k.x),Math.floor(k.y),7,11)||[[7,11]]).concat([[7,13],[7+(Math.random()<.5?-1:1)*APD,13]]);custs.push(k);}
 function spawnRobber(){
  let best=null,bl=1e9;for(const d of staffed()){const p=bfs(7,11,d.x,d.y+1);if(p&&p.length<bl){bl=p.length;best=p;}}
  if(!best)return;
- custs.push({id:++cid,spr:Math.floor(Math.random()*CUSTR.length),svc:'rob',x:7.5,y:11.5,path:best,state:'toRob',born:t,seat:null,d:null,rem:0,spot:null});}
+ const rb={id:++cid,spr:Math.floor(Math.random()*CUSTR.length),svc:'rob',x:7.5,y:11.5,path:best,state:'toRob',born:t,seat:null,d:null,rem:0,spot:null};custs.push(rb);approach(rb,7);}
 /* ---------- giornata ---------- */
 let stats=null;
 let nextArr=0;
@@ -387,8 +388,8 @@ function tick(dt){
     if(loss===0){stats.robbed=0;setMsg('Tentata rapina: la cassa era vuota');}
     else if(L>=3){stats.robbed=0;setMsg('Rapina! Il ladro è stato arrestato subito: non hai perso niente');spawnCop(c);}
     else{S.cash-=loss;const rec=Math.round(loss*Math.min(1,ALARM[L].rec+CAMS[S.cam||0].rec));S.cash+=rec;stats.stolen+=loss-rec;stats.robbed=loss-rec;setMsg('Rapina! Rubati '+eur(loss)+(rec>0?' · la polizia ti ha riportato '+eur(rec):''));}
-    errSnd();c.state='leave';c.path=bfs(Math.floor(c.x),Math.floor(c.y),7,11)||[[7,11]];}
-   else if(c.state==='serve'){c.rem-=blk()?0:dt;if(c.rem<=0){const s=SVN[c.svc];if(c.sp==='col'&&S.day-(S.lastStamp||0)>=20&&Math.random()<.3){S.lastStamp=S.day;grantStamp('Un collezionista ti regala un francobollo raro');}const fee=s.fee*(1+.05*Math.max(0,S.lvl-3))*planFee()*(c.sp==='col'?4:1)+(c.sp==='vip'?50:0)+(c.sp==='nn'?5:0)+(c.reg?2:0);if(!c.sp&&!c.reg&&(t-c.born)/(c.seat?100:60)<.7&&Math.random()<.2&&S.reg.length<40&&!S.reg.some(r=>r.spr===c.spr))S.reg.push({spr:c.spr,svc:c.svc});S.cash+=fee;stats.inc+=fee;stats.served++;if(c.sp==='col')S.found.col=1;if(c.sp==='vip')S.found.vip=1;fxCoin(c.d,fee,c);if(c.d.st)c.d.st.sv=(c.d.st.sv||0)+1;c.d.served=(c.d.served||0)+1;if(s.deliver)stats.items=(stats.items||0)+1;S.rep=Math.min(100,S.rep+.4);c.d.cur=null;c.d=null;c.state='leave';c.path=bfs(Math.floor(c.x),Math.floor(c.y),7,11)||[[7,11]];}}
+    errSnd();walkOut(c);}
+   else if(c.state==='serve'){c.rem-=blk()?0:dt;if(c.rem<=0){const s=SVN[c.svc];if(c.sp==='col'&&S.day-(S.lastStamp||0)>=20&&Math.random()<.3){S.lastStamp=S.day;grantStamp('Un collezionista ti regala un francobollo raro');}const fee=s.fee*(1+.05*Math.max(0,S.lvl-3))*planFee()*(c.sp==='col'?4:1)+(c.sp==='vip'?50:0)+(c.sp==='nn'?5:0)+(c.reg?2:0);if(!c.sp&&!c.reg&&(t-c.born)/(c.seat?100:60)<.7&&Math.random()<.2&&S.reg.length<40&&!S.reg.some(r=>r.spr===c.spr))S.reg.push({spr:c.spr,svc:c.svc});S.cash+=fee;stats.inc+=fee;stats.served++;if(c.sp==='col')S.found.col=1;if(c.sp==='vip')S.found.vip=1;fxCoin(c.d,fee,c);if(c.d.st)c.d.st.sv=(c.d.st.sv||0)+1;c.d.served=(c.d.served||0)+1;if(s.deliver)stats.items=(stats.items||0)+1;S.rep=Math.min(100,S.rep+.4);c.d.cur=null;c.d=null;walkOut(c);}}
    else if(c.state==='toInsp'){c.state='inspect';c.tt=8;}
    else if(c.state==='inspect'){c.tt-=dt;if(c.tt<=0)finishInspect(c);}
    else if(c.state==='leave'){c.dead=true;}}}
@@ -696,11 +697,11 @@ function showPerson(m,kind){const open=phase==='open'||phase==='closing',role=ki
  <div class="row"><div class="t"><b>Turno</b><span>${S.lvl<2?'Si sblocca al livello 3':shn[m.sh||0]+(m.sh?' · stipendio ridotto':'')}</span></div><button id="shb" ${open||S.lvl<2?'disabled':''}>Cambia</button></div>`:''}
  ${kind==='staff'&&(m.log||[]).length?`<div class="row"><div class="t"><b>Storia</b>${(m.log||[]).slice(-5).reverse().map(l=>'<span>Giorno '+l.d+': '+l.t+'</span>').join('')}</div></div>`:''}
  <div class="row"><div class="t"><b>Stipendio</b><span>${eur(kind==='staff'?payOf(m):Math.round(SALD()*hoursF()))} al giorno</span></div></div>
- <div class="row"><div class="t"><b>Licenzia</b><span>${open?'Solo a ufficio chiuso':''}</span></div><button class="sell" id="fi" ${open?'disabled':''}>Licenzia</button></div>`);
+ <div class="row"><div class="t"><b>Licenzia</b><span></span></div><button class="sell" id="fi">Licenzia</button></div>`);
  const pn=s.querySelector('#pnm');pn.oninput=()=>{m.nm=pn.value.slice(0,28);};pn.onchange=()=>{if(!m.nm.trim())m.nm=rndName();save();};
  const tb=s.querySelector('#trb');if(tb)tb.onclick=()=>{if(S.cash<TRC)return;S.cash-=TRC;m.trn=hasT(m,'impa')?1:hasT(m,'pigr')?3:2;assign();save();ui();showPerson(m,kind);};
  const sb=s.querySelector('#shb');if(sb)sb.onclick=()=>{if(open)return;m.sh=((m.sh||0)+1)%3;assign();save();ui();showPerson(m,kind);};
- const fi=s.querySelector('#fi');fi.onclick=()=>{if(open)return;if(fi.dataset.ok!=='1'){fi.dataset.ok='1';fi.textContent='Sì, licenzia';return;}const arr=kind==='staff'?S.staff:kind==='post'?S.postmen:S.clean;arr.splice(arr.indexOf(m),1);assign();save();ui();showStaff();};}
+ const fi=s.querySelector('#fi');fi.onclick=()=>{if(fi.dataset.ok!=='1'){fi.dataset.ok='1';fi.textContent='Sì, licenzia';return;}const arr=kind==='staff'?S.staff:kind==='post'?S.postmen:S.clean;arr.splice(arr.indexOf(m),1);assign();save();ui();showStaff();};}
 function showStaff(){const n=S.staff.length,open=phase==='open'||phase==='closing';
  const face=(m,k,i)=>`<button data-k="${k}" data-i="${i}" style="padding:3px;background:#E9EEF6;display:inline-flex;flex-direction:column;align-items:center;font-size:11px;color:#14233F;width:62px;opacity:${m.off||m.trn?.5:1}"><img src="${mkURI(STAFFR[m.f])}" style="height:62px"><span>${esc(m.nm.split(' ')[0])}</span></button>`;
  const allow=Math.min(6,1+Math.floor((S.day-(S.cleanUnlockDay||S.day))/7));
@@ -742,7 +743,7 @@ function dirtTick(dt){if(phase!=='open'||S.dirt.length>=40)return;
  for(const c of custs){if(c.compOf||c.cop||c.sp==='isp')continue;if((c.state==='wait'||c.state==='serve')&&inOffice(Math.floor(c.x),Math.floor(c.y))&&Math.random()<dt*.004*dirtK())S.dirt.push({x:c.x+rnd(-.3,.3),y:c.y+rnd(0,.3),k:Math.floor(Math.random()*3)});}
  if(!S.cleanUnlock&&S.lvl>=3&&S.dirt.length>=8){S.cleanUnlock=1;S.cleanUnlockDay=S.day;banner('Il pavimento si sporca: puoi assumere addetti alle pulizie (Personale)','#6D4C41');}}
 function spawnInspector(){const f=fr(),c={id:++cid,spr:Math.floor(Math.random()*CUSTR.length),svc:'isp',sp:'isp',x:7.5,y:11.5,path:[],state:'toInsp',born:t,seat:null,d:null,rem:0,spot:null,ord:0,tk:''};
- c.path=bfs(7,11,Math.floor((f.x0+f.x1)/2),f.y1-1)||[];custs.push(c);banner('Arriva un ispettore!','#37474F');}
+ c.path=bfs(7,11,Math.floor((f.x0+f.x1)/2),f.y1-1)||[];custs.push(c);approach(c,7);banner('Arriva un ispettore!','#37474F');}
 function finishInspect(c){const probs=[];if(S.dirt.length>10)probs.push('troppo sporco');if(S.objs.filter(o=>o.k==='chair').length<S.objs.filter(o=>o.k==='desk').length)probs.push('poche sedie per i clienti');if(S.lvl>=2&&!S.objs.some(o=>o.k==='wc'))probs.push('manca il bagno');if(S.lvl>=4&&!S.ramp)probs.push('manca la passerella per disabili');
  if(!probs.length){S.cash+=300;stats.bonus=(stats.bonus||0)+300;S.found.isp=1;banner('Ispezione superata! Premio: 300 €','#2E7D4F');}
  else{const fn=Math.round(150*probs.length*fineK());S.cash-=fn;stats.fine=(stats.fine||0)+fn;banner('Ispezione: '+probs.join(', ')+'. Multa: '+eur(fn),'#C0342B');}
