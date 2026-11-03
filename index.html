@@ -182,7 +182,7 @@ for(const p of PACKS)for(const [id,n,fee,t,w] of p.sv)SERV.push({id,n,pack:p.id,
 const SVN=Object.fromEntries(SERV.map(s=>[s.id,s]));SVN.rob={id:'rob',n:'Rapina',t:0,col:'#C0342B',ab:'!'};SVN.isp={id:'isp',n:'',t:0,col:'#14233F',fee:0,ab:''};SVN.cop={id:'cop',n:'',t:0,col:'#1E56C8',ab:''};
 const ALARM=[{n:'Nessun allarme',c:0,rec:0},{n:'Allarme: l’operatore chiama la polizia',c:600,rec:.3},{n:'Guardia giurata fuori',c:2500,rec:.6},{n:'Allarme centralizzato automatico',c:6000,rec:1}];
 const TOTW=SERV.reduce((a,s)=>a+s.w,0);
-let OPEN=480,STOPARR=815,END=840;const MINSEC=.35,WSP=.7;let GC=0;
+let OPEN=480,STOPARR=815,END=840;const MINSEC=.65,WSP=1.3;let GC=0;
 /* ---------- immagini ---------- */
 const mkURI=r=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="-38 -42 76 154">'+r+'</svg>');
 const ld=u=>{const i=new Image();i.src=u;return i;};
