@@ -200,6 +200,11 @@ let MGN=null;const OUT=()=>{if(!MGN){MGN=AC.createGain();MGN.connect(AC['destin'
 const RT={vol:(()=>{try{const v=localStorage.getItem('uptycoon.vol');return v==null?80:+v;}catch(e){return 80;}})(),snd:(()=>{try{return localStorage.getItem('uptycoon.snd')!=='0';}catch(e){return true;}})()};
 let AC=null,OPLAST=0;
 const TYPS=new Set(['cpa','cpp','cpc','cpv','cpi','bon','pcn','pcp','pcr','lin','tel','sim','cva','pola','polc','poli','polv','fin','pre','lba','lbp','lbv','buo','vag','vagi','scw','fra','tgm','bau','frc','fol','cap']);
+function nt(f,t0,d,ty,g,lp,att){if(!RT.snd||!AC)return;try{const t=AC.currentTime+t0,o=AC.createOscillator(),gn=AC.createGain();o.type=ty;o.frequency.value=f;att=att||.008;gn.gain.setValueAtTime(.0001,t);gn.gain.exponentialRampToValueAtTime(g,t+att);gn.gain.exponentialRampToValueAtTime(.0001,t+d);if(lp){const fl=AC.createBiquadFilter();fl.type='lowpass';fl.frequency.value=lp;o.connect(fl);fl.connect(gn);}else o.connect(gn);gn.connect(OUT());o.start(t);o.stop(t+d+.05);}catch(e){}}
+function bell(f,t0,d,g,e,ge,er){for(let i=0;i<=er;i++){const k=Math.pow(ge,i),tt=t0+i*e;nt(f,tt,d,'sine',g*k);nt(f*2,tt,d*.6,'sine',g*k*.3);}}
+function sndLevel(){if(!RT.snd||!AC)return;[[523.25,0,.5,.07],[659.25,.13,.5,.07],[783.99,.26,.5,.07],[1046.5,.39,1.2,.08],[659.25,.39,1.2,.03],[783.99,.39,1.2,.03]].forEach(a=>bell(a[0],a[1],a[2],a[3],.16,.25,3));}
+function sndBonus(){if(!RT.snd||!AC)return;bell(987.77,0,.35,.07,.12,.2,2);bell(1318.5,.09,.8,.08,.12,.2,2);}
+function sndTrophy(){if(!RT.snd||!AC)return;[[392,0],[523.25,.15],[659.25,.3]].forEach(a=>{nt(a[0],a[1],.2,'sawtooth',.05,2200,.03);});[523.25,659.25,783.99,1046.5].forEach(f=>{for(let i=0;i<=3;i++)nt(f,.45+i*.22,1.6,'sawtooth',.045*Math.pow(.25,i),2200,.03);});[1318.5,1568,1318.5,1046.5,1568].forEach((f,i)=>bell(f,.5+.05*i,.6,.03,.22,.25,3));}
 function ding(){if(!RT.snd||!AC)return;try{const t=AC.currentTime;[[880,0],[660,.16]].forEach(([f,d])=>{const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.0001,t+d);g.gain.exponentialRampToValueAtTime(.07,t+d+.02);g.gain.exponentialRampToValueAtTime(.0001,t+d+.22);o.connect(g);g.connect(OUT());o.start(t+d);o.stop(t+d+.25);});}catch(e){}}
 function errSnd(){if(!RT.snd||!AC)return;try{const t=AC.currentTime+.02,o=AC.createOscillator(),o2=AC.createOscillator(),g=AC.createGain(),g2=AC.createGain(),lp=AC.createBiquadFilter();o.type='triangle';o.frequency.value=196;o2.type='sine';o2.frequency.value=196*2.01;g2.gain.value=.25;lp.type='lowpass';lp.frequency.value=2400;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.3*.7,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+.55);o.connect(lp);o2.connect(g2);g2.connect(lp);lp.connect(g);g.connect(OUT());o.start(t);o2.start(t);o.stop(t+.6);o2.stop(t+.6);}catch(e){}}
 function opBeepAt(){if(!RT.snd||!AC)return;try{const t0=AC.currentTime+.02,M=AC.createGain();M.gain.value=.7*.8;M.connect(OUT());const bo=AC.createOscillator(),bf=AC.createBiquadFilter(),bg=AC.createGain();bo.type='square';bo.frequency.value=2600;bf.type='lowpass';bf.frequency.value=4200;bg.gain.setValueAtTime(0,t0);bg.gain.linearRampToValueAtTime(.16,t0+.004);bg.gain.setValueAtTime(.16,t0+.075);bg.gain.linearRampToValueAtTime(0,t0+.085);bo.connect(bf);bf.connect(bg);bg.connect(M);bo.start(t0);bo.stop(t0+.1);}catch(e){}}
@@ -435,7 +440,7 @@ const GOALS=[
 const REW={l5:500,l10:2000,l13:5000,m5:100,m10:200,m50:1000,m100:2000,m1000:5000,s1:100,s10:500,sall:3000,r1:200,r2:300,r3:2000,c100:1500,n10:500,n30:3000,h3:500,h4:500,h5:500};
 const REWX={m100:'Poster dorato',n30:'Allarme migliorato gratis',h1:'Pezzo raro',h2:'Pezzo raro'};
 const rewTxt=id=>[REW[id]?eur(REW[id]):'',REWX[id]||''].filter(Boolean).join(' + ');
-function checkGoals(){if(!S.won&&phase==='prep'&&endCond()){S.won=S.day;S.hardSeen=1;S.trophies.push({t:'Direttore Leggendario',d:S.day,k:'gold'});recordScore('Vittoria');save();banner('Ufficio del Secolo!','#C9962A');setTimeout(showEnd,900);}
+function checkGoals(){if(!S.won&&phase==='prep'&&endCond()){S.won=S.day;S.hardSeen=1;sndTrophy(),S.trophies.push({t:'Direttore Leggendario',d:S.day,k:'gold'});recordScore('Vittoria');save();banner('Ufficio del Secolo!','#C9962A');setTimeout(showEnd,900);}
  for(const o of GOALS){if(!S.goals[o.id]&&o.f()){S.goals[o.id]=S.day;if(REW[o.id])S.cash+=REW[o.id];if(o.id==='n30'&&S.alarm<3)S.alarm++;banner('Obiettivo raggiunto: '+o.n+(rewTxt(o.id)?' · Premio: '+rewTxt(o.id):''),'#2E7D4F');confetti(70);if(o.id==='m100')setTimeout(()=>banner('Nuovo poster dorato negli Arredi!','#C9962A'),600);save();ui();if(o.id==='h2')setTimeout(()=>banner('Nuovo pezzo raro negli Arredi!','#8E24AA'),600);if(o.id==='h1')setTimeout(()=>banner('Nuovo pezzo raro negli Arredi!','#8E24AA'),600);}}}
 function showGoals(){const done=Object.keys(S.goals).length;
  sheet('<h2>Obiettivi</h2><div style="font-size:13px;color:#5B6B86">'+done+' su '+GOALS.length+'</div>'+GOALS.map(o=>{const ok=!!S.goals[o.id],nm=o.h&&!ok?'???':o.n,ds=o.h&&!ok?'Obiettivo nascosto':((o.d||'')+(o.d&&rewTxt(o.id)?' · ':'')+(rewTxt(o.id)?'Premio: '+rewTxt(o.id):''));return '<div class="row"><div class="t"><b>'+(ok?'✓ ':'')+nm+'</b>'+(ds?'<span>'+ds+'</span>':'')+'</div></div>';}).join(''));}
@@ -450,7 +455,7 @@ function pickEvent(){assign();lastHalf=false;S.clean.forEach(m=>{m.x=null;m.tg=n
 const blk=()=>!!(stats&&stats.black&&phase!=='prep'&&phase!=='summary'&&t>=stats.black[0]&&t<stats.black[1]);
 const BN=document.createElement('div');BN.style.cssText='position:absolute;left:50%;top:112px;transform:translate(-50%,-30px);opacity:0;transition:all .4s;z-index:6;padding:10px 16px;border-radius:14px;font-weight:900;font-size:15px;max-width:86%;text-align:center;pointer-events:none;box-shadow:0 4px 14px #0006;color:#fff';$('stage').appendChild(BN);
 let bnq=[],bnBusy=false;
-function banner(tx,c){bnq.push([tx,c||'#1E56C8']);nextBn();}
+function banner(tx,c){if(/^Ufficio ingrandito/.test(tx))sndLevel();else if(/^(Obiettivo raggiunto|Missione compiuta|Ispezione superata|Collezione:|Nuovo francobollo)/.test(tx)||/\u20ac|Premio/.test(tx)&&/^(Premio|Bonus)/.test(tx))sndBonus();bnq.push([tx,c||'#1E56C8']);nextBn();}
 function nextBn(){const st=$('start');if(st&&st.style.display!=='none')return;if(bnBusy||!bnq.length)return;bnBusy=true;const [tx,c]=bnq.shift();BN.textContent=tx;BN.style.background=c;BN.style.opacity=1;BN.style.transform='translate(-50%,0)';setTimeout(()=>{BN.style.opacity=0;BN.style.transform='translate(-50%,-30px)';setTimeout(()=>{bnBusy=false;nextBn();},450);},3800);}
 function fxCoin(d,fee,c){const n=performance.now();FX.push({k:'coin',x:d.x+.5,y:d.y+.35,t0:n,txt:'+'+eur(fee)});FX.push({k:'heart',x:c.x,y:c.y,t0:n});}
 function fxPop(x,y){FX.push({k:'pop',x,y,t0:performance.now(),d:700});}
@@ -547,7 +552,7 @@ function showEval(){const H=S.evalH,left=Math.max(0,S.evalNext-S.day);
 const STAMPS=['Il Veliero del 1950','La Cometa Rossa','Il Leone d’Oro','Ponte sul Fiume','Il Primo Treno','La Dama del Lago','Stella del Nord','Il Faro Blu','Il Gallo Verde','L’Aquila Imperiale','La Rosa d’Argento','Il Mappamondo'];
 const COLLR={4:200,8:500,12:1500};
 function grantStamp(why){const left=STAMPS.map((x,i)=>i).filter(i=>!S.coll.includes(i));if(!left.length)return;const i=pick(left);S.coll.push(i);banner((why||'Nuovo francobollo raro')+': '+STAMPS[i],'#8E24AA');
- for(const k of [4,8,12])if(S.coll.length>=k&&S.collRew<k){S.collRew=k;S.cash+=COLLR[k];banner('Collezione: '+k+' pezzi! Premio '+eur(COLLR[k]),'#C9962A');if(k===12)S.trophies.push({t:'Collezionista',d:S.day,k:'gold'});}}
+ for(const k of [4,8,12])if(S.coll.length>=k&&S.collRew<k){S.collRew=k;S.cash+=COLLR[k];banner('Collezione: '+k+' pezzi! Premio '+eur(COLLR[k]),'#C9962A');if(k===12)sndTrophy(),S.trophies.push({t:'Collezionista',d:S.day,k:'gold'});}}
 const MIS=[
  {id:'ramp',g:'Il sindaco',tx:'Il paese vuole un ufficio senza barriere: compra la passerella per disabili.',days:14,min:3,ok:()=>!!S.ramp,r:{cash:500,rep:3}},
  {id:'srv',g:'La scuola del paese',tx:()=>'Le classi vengono in gita: servi almeno '+(40+8*S.lvl)+' clienti in una giornata.',days:12,min:2,ok:()=>stats&&stats.served>=40+8*S.lvl,r:{cash:400,rep:2}},
@@ -565,11 +570,11 @@ function showMissionOffer(m){if(S.mis||phase!=='prep')return;const tgv=m.tg?m.tg
  s2.querySelector('#mac').onclick=()=>{S.mis={id:m.id,g:m.g,d0:S.day,end:S.day+m.days,tg:tgv};S.misRecent.push(m.id);S.misNext=S.day+m.days+3;save();closeSheet();banner('Missione accettata: hai '+m.days+' giorni','#C9962A');};
  s2.querySelector('#mno').onclick=()=>{S.misNext=S.day+5;save();closeSheet();};}
 function checkMission(){if(!S.mis)return;const m=MIS.find(x=>x.id===S.mis.id);if(!m)return;
- if(m.ok()){const r=m.r;S.cash+=r.cash;S.rep=Math.min(100,(S.rep||50)+(r.rep||0));if(r.stamp)grantStamp('Ricompensa della missione');S.misDone++;if(S.misDone%3===0)S.trophies.push({t:'Amico del paese',d:S.day,k:'silver'});banner('Missione compiuta! '+eur(r.cash),'#2E7D4F');S.mis=null;save();}
+ if(m.ok()){const r=m.r;S.cash+=r.cash;S.rep=Math.min(100,(S.rep||50)+(r.rep||0));if(r.stamp)grantStamp('Ricompensa della missione');S.misDone++;if(S.misDone%3===0)sndTrophy(),S.trophies.push({t:'Amico del paese',d:S.day,k:'silver'});banner('Missione compiuta! '+eur(r.cash),'#2E7D4F');S.mis=null;save();}
  else if(S.day>S.mis.end){S.rep=Math.max(0,(S.rep||50)-2);banner('Missione fallita: il paese è deluso','#C0342B');S.mis=null;save();}}
 function yearCheck(){if(S.day<S.yr.end)return;const lo=S.yr.end-365,H=S.evalH.filter(h=>h.day>lo&&h.day<=S.yr.end);
  const avg=H.length?H.reduce((a,h)=>a+h.stars,0)/H.length:0,wins=H.filter(h=>h.rank===1).length,gold=H.length>=6&&avg>=3.8&&wins>=H.length/2,silver=!gold&&H.length>=6&&avg>=3,yr=dateOf(S.day).getFullYear(),prize=gold?Math.round(5000*(1+.3*S.lvl)):silver?Math.round(1500*(1+.3*S.lvl)):0;
- S.cash+=prize;if(gold)S.trophies.push({t:'Ufficio dell’anno '+yr,d:S.day,k:'gold'});else if(silver)S.trophies.push({t:'Menzione d’argento '+yr,d:S.day,k:'silver'});S.yr={n:S.yr.n+1,end:S.yr.end+365};save();
+ S.cash+=prize;if(gold)sndTrophy(),S.trophies.push({t:'Ufficio dell’anno '+yr,d:S.day,k:'gold'});else if(silver)sndTrophy(),S.trophies.push({t:'Menzione d’argento '+yr,d:S.day,k:'silver'});S.yr={n:S.yr.n+1,end:S.yr.end+365};save();
  setTimeout(()=>sheet('<h2>Premiazione dell’anno</h2><div style="text-align:center;font-size:64px;margin:8px 0">'+(gold?'🏆':silver?'🥈':'📜')+'</div><div style="text-align:center;font-weight:900;font-size:20px">'+(gold?'Ufficio dell’anno!':silver?'Menzione d’argento':'Anno concluso')+'</div><div class="row"><div class="t"><b>Valutazioni dell’anno</b><span>'+H.length+' · media '+(avg?avg.toFixed(1):'—')+' stelle</span></div></div><div class="row"><div class="t"><b>Prime posizioni</b><span>'+wins+'</span></div></div><div style="text-align:center;margin-top:10px;font-weight:900">'+(prize?'Premio: '+eur(prize):'Nessun premio. Il prossimo anno puoi fare meglio!')+'</div>','Chiudi'),400);}
 /* ---------- rosso, fallimento e classifica finale ---------- */
 const SCK='pm.scores';
@@ -1249,7 +1254,7 @@ function place(k,x,y,t){
  S.cash-=cost;fxPop(x+.5,y+.6);assign();save();ui();}
 function removeAt(x,y){
  if(phase==='open'||phase==='closing'){setMsg('Si può rimuovere solo a ufficio chiuso');return;}
- {const f0=fr();if(y===f0.y0&&S.rooms.rd.includes(x)&&!objAt(x,y)){S.rooms.rd.splice(S.rooms.rd.indexOf(x),1);S.cash+=COST.door/2;save();ui();setMsg('Porta venduta');return;}}
+ {const f0=fr();if(y===f0.y0&&S.rooms.rd.includes(x)&&!objAt(x,y)){S.rooms.rd.splice(S.rooms.rd.indexOf(x),1);S.cash+=Math.round(COST.door*.35);save();ui();setMsg('Porta venduta');return;}}
  const o=objAt(x,y);if(!o)return;
  if(o.k==='cons'){setMsg('La scrivania fa parte della sala consulenza');return;}
  let r=Math.round((costOf(o.k,o.t)+(o.eq||[]).reduce((a,i)=>a+EQN[i].c,0))*.35);
@@ -1274,10 +1279,10 @@ function ui(){
  if(!m){
   if(tool&&kindOf(tool)==='poster')m='Tocca una parete senza finestre per attaccare il poster ('+eur(costOf('poster',typeOf(tool)))+')';
   else if(tool&&tool!=='remove')m='Tocca la mappa per posizionare ('+eur(costOf(kindOf(tool),typeOf(tool)))+')';
-  else if(tool==='remove')m='Tocca un oggetto per venderlo (rimborso 50%)';
+  else if(tool==='remove')m='Tocca un oggetto per venderlo (rimborso 35%)';
   else if(phase==='prep'&&!canOpen()){m=!desks().some(d=>d.k==='desk')?'Compra uno sportello da Arredi':'Assumi un dipendente da Personale';}
   else if(phase==='prep')m='Pronto: premi Apri giornata';
-  else if(phase==='open'||phase==='closing'){const w=custs.filter(c=>c.state==='wait'||c.state==='enter').length;m='In attesa: '+w+' · Serviti: '+stats.served+' · Incasso: '+eur(stats.inc);}
+  else if(phase==='open'||phase==='closing'){const yIn=fr().y1+1,w=custs.filter(c=>(c.state==='wait'||c.state==='enter')&&c.y<yIn).length;m='In attesa: '+w+' · Serviti: '+stats.served+' · Incasso: '+eur(stats.inc);}
  }
  const cancel=tool?'<button class="acc" id="cx">Annulla</button>':'';
  const mh=m?'<span>'+m+'</span>'+cancel:'',mg=$('msg');if(mg._h!==mh){mg._h=mh;mg.style.display=m?'flex':'none';mg.innerHTML=mh;if(tool)$('cx').onclick=()=>setTool(null);}
@@ -1292,7 +1297,7 @@ function showArredi(){
  (S.rooms.retro?row('door','Porta del retrosportello','',COST.door,false):'')+
  (S.rooms.post?row('pdesk','Banco per i portalettere','Con posta e pacchi sopra, senza PC',COST.pdesk,false):'')+
  (S.rooms.retro?row('tpc','Postazione di formazione','Per far migliorare i dipendenti · massimo 2',COST.tpc,S.objs.filter(o=>o.k==='tpc').length>=2):'')+(S.rooms.retro?row('rdesk','Scrivania del retrosportello','Solo PC · massimo 2',COST.rdesk,S.objs.filter(o=>o.k==='rdesk').length>=2):'')+
- `<div class="row"><div class="t"><b>Rimuovi</b><span>Vendi un oggetto (rimborso 50%)</span></div><button data-k="remove">Scegli</button></div>`;
+ `<div class="row"><div class="t"><b>Rimuovi</b><span>Vendi un oggetto (rimborso 35%)</span></div><button data-k="remove">Scegli</button></div>`;
  const sh=sheet(h);sh.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{closeSheet();setTool(b.dataset.k);});
 }
 function packNeed(p){return (p.cons?'una sala consulenza':'uno sportello')+' con '+p.rq.map(i=>EQN[i].n).join(', ')+(p.arm?' e un '+(p.arm==='doc'?'armadio per documenti':'armadio per caselle postali'):'');}
@@ -1415,7 +1420,7 @@ cv.addEventListener('pointerleave',()=>{hover=null;});
 function tap(e){
   const [x,y]=tileOf(e,0);hover=[x,y];
  if(tool&&kindOf(tool)==='poster'){const h=wallHit(e);PHOVER=h;const c=costOf('poster',typeOf(tool));if(S.cash<c){setMsg('Cassa insufficiente');return;}if(!posterOK(h)){setMsg('Qui non si può: scegli un pezzo di parete libero');return;}S.posters.push({w:h.w,p:h.p,t:typeOf(tool)});S.cash-=c;save();ui();}
- else if(tool==='remove'&&(()=>{const h=wallHit(e);const i=h?S.posters.findIndex(q=>q.w===h.w&&q.p===h.p):-1;if(i>=0){if(phase==='open'||phase==='closing'){setMsg('Si può rimuovere solo a ufficio chiuso');return true;}const q=S.posters.splice(i,1)[0];S.cash+=POSTER[q.t||0].c/2;save();ui();return true;}return false;})()){}
+ else if(tool==='remove'&&(()=>{const h=wallHit(e);const i=h?S.posters.findIndex(q=>q.w===h.w&&q.p===h.p):-1;if(i>=0){if(phase==='open'||phase==='closing'){setMsg('Si può rimuovere solo a ufficio chiuso');return true;}const q=S.posters.splice(i,1)[0];S.cash+=Math.round(POSTER[q.t||0].c*.35);save();ui();return true;}return false;})()){}
  else if(tool&&tool!=='remove')place(kindOf(tool),x,y,typeOf(tool));
  else if(tool==='remove'){const o=hitObj(e);if(o)removeAt(o.x,o.y);}
  else{const pr=hitPerson(e);if(pr)showPerson(pr.m,pr.kind);else{const o=hitObj(e);if(o&&(o.k==='desk'||o.k==='cons'||o.k==='rdesk'))showDesk(o);else closeSheet();}}
