@@ -766,6 +766,20 @@ function draw(){
   P(xa,6.5,xb,45,'#6BB84C');for(let i=Math.floor(x0-75);i<XE+75;i+=2)P(i,6.5,i+1,45,'#76C455');
   P(cx-.7,6.5,cx+.7,40,'#DCCA98');for(let k=0;k<3;k++)P(cx-12,10.3+12*k,cx+12,11.3+12*k,'#DCCA98');
   for(const [a,d,w,h] of E.beds){P(a,d,a+w,d+h,'#7A5A3A');for(const [dx,dd,c] of bedDots(a,d,w,h)){const p=iso(dx,y1+dd,2);g.fillStyle=c;g.beginPath();g.arc(p[0],p[1],3,0,7);g.fill();}}
+  {const a0=cx+16,a1=a0+17,d0=7.3,d1=d0+30,mx=(a0+a1)/2,md=(d0+d1)/2,ln='#F4F7F2',L=(p1,q1,p2,q2,w)=>{const dx=p2-p1,dy=q2-q1,l=Math.hypot(dx,dy),nx=-dy/l*w/2,ny=dx/l*w/2;poly([iso(p1+nx,y1+q1+ny,0),iso(p2+nx,y1+q2+ny,0),iso(p2-nx,y1+q2-ny,0),iso(p1-nx,y1+q1-ny,0)],ln);};
+   const R=(x,d,w,h)=>{L(x,d,x+w,d,.16);L(x,d+h,x+w,d+h,.16);L(x,d,x,d+h,.16);L(x+w,d,x+w,d+h,.16);};
+   P(a0-1,d0-1,a1+1,d1+1,'#5FA844');for(let i=0;i<10;i++)P(a0-1,d0-1+i*3.2,a1+1,d0-1+i*3.2+3.2,i%2?'#4FA03A':'#5DAF45');
+   R(a0,d0,a1-a0,d1-d0);
+   poly(Array.from({length:40},(_,i)=>{const t=i/40*Math.PI*2;return iso(mx+Math.cos(t)*2.6,y1+md+Math.sin(t)*2.6,0);}),ln);poly(Array.from({length:40},(_,i)=>{const t=i/40*Math.PI*2;return iso(mx+Math.cos(t)*2.42,y1+md+Math.sin(t)*2.42,0);}),'#4FA03A');
+   L(a0,md,a1,md,.16);const arc=(cd,sg)=>{const tm=Math.acos((4.2-2.9)/3.1);let pr=null;for(let i=0;i<=30;i++){const t=-tm+2*tm*i/30,px=mx+Math.sin(t)*3.1,pd=cd+sg*Math.cos(t)*3.1;if(pr)L(pr[0],pr[1],px,pd,.15);pr=[px,pd];}};arc(d0+2.9,1);arc(d1-2.9,-1);for(const dd of [d0+2.9,d1-2.9])poly(Array.from({length:12},(_,i)=>{const t=i/12*Math.PI*2;return iso(mx+Math.cos(t)*.16,y1+dd+Math.sin(t)*.16,0);}),ln);
+   R(mx-4.2,d0,8.4,4.2);R(mx-2,d0,4,1.6);R(mx-4.2,d1-4.2,8.4,4.2);R(mx-2,d1-1.6,4,1.6);
+   const goal=(dd,sg)=>{const gw=3.4,xa=mx-gw/2,xb=mx+gw/2,dp=1.3*sg,H=44,t=.12,y=y1+dd,yb=y1+dd+dp;
+     quadY(yb,xa,xb,0,H,'rgba(255,255,255,.28)');quadX(xa,y,yb,0,H,'rgba(255,255,255,.2)');quadX(xb,y,yb,0,H,'rgba(255,255,255,.2)');
+     prism(xa-t,Math.min(y,yb)-.03,xa+t,Math.min(y,yb)+.03,0,H,'#fff','#e8e8e8','#d0d0d0');
+     prism(xb-t,y-.06,xb+t,y+.06,0,H,'#fff','#e8e8e8','#d0d0d0');
+     prism(xa-t,y-.06,xb+t,y+.06,H-4,H,'#fff','#e8e8e8','#d0d0d0');};
+   goal(d0,-1);goal(d1,1);
+   }
   circ(E.fount[0],E.fount[1],1.8,'#BFC7D1');circ(E.fount[0],E.fount[1],1.45,'#74C7F2');}
  {const Tb=E.tb-1,Pv=(a1,a2,d1,d2,c)=>poly([iso(a1,d1,0),iso(a2,d1,0),iso(a2,d2,0),iso(a1,d2,0)],c),yb=y1+45,segs=[[Tb-6.2,y1+2.45],[y1+6.5,yb]];
   for(const [d1,d2] of segs){Pv(x0-10.2,x0-6.2,d1,d2,'#C8CBD2');for(let d=Math.ceil(d1);d<d2;d++){Pv(x0-10.2,x0-9.6,d,d+.03,'#B3B8C0');Pv(x0-6.8,x0-6.2,d,d+.03,'#B3B8C0');}}
