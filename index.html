@@ -547,10 +547,10 @@ function pregiDifetti(m){const P=[],D=[],sp=m.sp||1,er=m.er||0;
  if((m.tr||0)>=1)P.push(['Formato (livello '+m.tr+')','Più veloce e più preciso']);else D.push(['Non formato','Si può formare']);
  for(const k of (m.pr||[]))if(TRP[k])P.push(TRP[k]);for(const k of (m.df||[]))if(TRD[k])D.push(TRD[k]);
  const li=(a,e)=>a.length?a.map(x=>'<div style="font-weight:800;margin-top:3px">'+e+' '+x[0]+'<div style="font-weight:600;font-size:11px;opacity:.65;margin-left:17px">'+x[1]+'</div></div>').join(''):'<div style="opacity:.6">Nessuno</div>';
- return '<div style="flex:1;min-width:0;line-height:1.25"><div style="font-weight:900;color:#2E7D4F">Pregi</div>'+li(P,'✔')+'<div style="font-weight:900;color:#C0342B;margin-top:10px">Difetti</div>'+li(D,'✖')+'</div>';}
+ return '<div style="flex:1;min-width:0;line-height:1.25;overflow-wrap:anywhere;padding-right:4px"><div style="font-weight:900;color:#2E7D4F">Pregi</div>'+li(P,'✔')+'<div style="font-weight:900;color:#C0342B;margin-top:10px">Difetti</div>'+li(D,'✖')+'</div>';}
 function showPerson(m,kind){const open=phase==='open'||phase==='closing',role=kind==='staff'?'Dipendente':kind==='post'?'Portalettere':'Addetto alle pulizie',tpcN=S.objs.filter(o=>o.k==='tpc').length,busy=S.staff.filter(x=>x.trn>0).length,shn=['Giornata intera','Mattina','Pomeriggio'];
  const stt=m.off>0?'In ferie ('+m.off+' giorni)':m.trn>0?'In formazione ('+m.trn+' giorni)':'In servizio',canTr=(m.tr||0)<3&&!m.trn&&!m.off&&tpcN>busy&&!open;
- const s=sheet(`<h2>${role}</h2><div style="display:flex;align-items:center;gap:14px;margin:4px 0 10px"><img src="${mkURI(STAFFR[m.f])}" style="height:170px;flex:none">${kind==='staff'?pregiDifetti(m):''}</div>
+ const s=sheet(`<h2>${role}</h2><div style="display:flex;align-items:center;margin:4px 0 10px"><div style="${kind==='staff'?'flex:0 0 50%;':'flex:1;'}text-align:center"><img src="${mkURI(STAFFR[m.f])}" style="height:170px"></div>${kind==='staff'?pregiDifetti(m):''}</div>
  <div class="row"><div class="t"><b>Nome</b></div><input id="pnm" value="${esc(m.nm)}" maxlength="16" style="flex:1;font:inherit;font-weight:800;padding:8px;border:2px solid #C9D3E6;border-radius:10px;max-width:60%"></div>
  <div class="row"><div class="t"><b>Stato</b><span>${stt}</span></div></div>
  <div class="row"><div class="t"><b>Assunto</b><span>Giorno ${m.hd}</span></div></div>
