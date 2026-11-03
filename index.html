@@ -601,7 +601,7 @@ function redCheck(){if(S.cash>=0){if(S.red)banner('Sei tornato in positivo!','#2
  save();return false;}
 function showRescue(){const left=3-S.red;sheet('<h2>⚠ Cassa in rosso</h2><div style="font-size:15px;margin:6px 0">Ti mancano <b>'+eur(-S.cash)+'</b> per tornare a zero. Hai ancora <b>'+left+' giorni</b>: se a fine giornata sei ancora sotto zero, ogni notte un dipendente se ne va, e al terzo giorno fallisci.</div>'+
  '<div style="font-weight:900;color:#1E56C8;margin-top:10px">Come rimediare</div>'+
- '<div class="row"><div class="t"><b>Vendi arredi e attrezzature</b><span>Ti rimborsano il 50%, subito. Puoi farlo anche prima di aprire.</span></div><button id="rv">Vendi</button></div>'+
+ '<div class="row"><div class="t"><b>Vendi arredi e attrezzature</b><span>Ti rimborsano il 35%, subito. Puoi farlo anche prima di aprire.</span></div><button id="rv">Vendi</button></div>'+
  '<div class="row"><div class="t"><b>Licenzia chi costa di più</b><span>Meno stipendi ogni giorno.</span></div><button id="rl">Personale</button></div>'+
  '<div class="row"><div class="t"><b>Cambia il piano del giorno</b><span>Prezzi alti: ogni servizio rende di più. Oppure una giornata promozione per avere più clienti.</span></div><button id="rp2">Piano</button></div>'+
  '<div style="font-size:12px;color:#5B6B86;margin-top:10px">Appena la cassa torna sopra zero, il pericolo finisce.</div>','Ho capito');
