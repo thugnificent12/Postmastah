@@ -347,14 +347,14 @@ function spawnRobber(){
 /* ---------- giornata ---------- */
 let stats=null;
 let nextArr=0;
-const freshStats=()=>({inc:0,served:0,left:0,stolen:0,robbed:null,robAt:(S.day>=2&&Math.random()<.05*DF().rob*CAMS[S.cam||0].rob)?rnd(OPEN+40,STOPARR-30):null});
+const freshStats=()=>({inc:0,served:0,left:0,stolen:0,robbed:null,robAt:(S.day>=2&&Math.random()<.05*DF().rob*CAMS[S.cam||0].rob*(1+1.5*PR()))?rnd(OPEN+40,STOPARR-30):null});
 function canOpen(){return staffed().some(d=>d.k==='desk');}
 function openDay(){if(phase==='prep')desks().forEach(d=>d.broken=false);if(phase!=='prep'||!canOpen())return;assign();stats=freshStats();custs=[];desks().forEach(d=>d.cur=null);S.objs.forEach(o=>{if(o.k==='chair')o.res=null;});phase='open';t=OPEN;nextArr=OPEN+rnd(2,6);pickEvent();closeSheet();setTool(null);ui();}
 function endDay(){
  let ang=custs.filter(c=>c.state!=='leave'&&c.svc!=='rob'&&c.svc!=='isp'&&!c.compOf).length;S.rep=Math.max(0,S.rep-ang*1);stats.left+=ang;custs=[];
  let atmN=0,atmI=0;if(hasAtm()){atmN=Math.round(22*rnd(.8,1.2));atmI=atmN*ATM_FEE;}
  const sal=staffPay();let pen=0;stats.deliv=null;if(S.rooms.post){const f0=fr(),it=Math.round((f0.x1-f0.x0+1)*(f0.y1-f0.y0+1)/2),cap=S.postmen.length*VEH[S.veh||0].cap,miss=Math.max(0,it-cap);pen=miss*PENI;stats.deliv={pen};}
- desks().forEach(d=>{if(d.eq.includes('pc'))d.cond=Math.max(0,wearOf(d)-(1.2+(d.served||0)*.015)*(hasT(d.st,'pcb')?.7:hasT(d.st,'dist')?1.4:1));d.served=0;});const rep=stats.repair||0,ex=(stats.bonus||0)-(stats.fine||0);if(S.dirt.length&&S.clean.length)S.dirt.splice(0,S.clean.length*12);desks().forEach(d=>d.broken=false);const rentD=(stats.rent=S.lvl>=5?Math.round(40*Math.pow(S.lvl-4,1.6)*hardK()):0)+(stats.mish||0)+(stats.tax=S.lvl>=7?Math.round(stats.inc*.08*hardK()):0);const res=stats.inc-stats.stolen+atmI-sal-pen-rep+ex-rentD;S.cash+=atmI-sal-pen-rep-rentD;S.noRob=stats.robbed==null?S.noRob+1:0;S.best=Math.max(S.best||0,stats.served);if(stats.served>=15&&stats.left===0)S.found.perfetto=1;if(stats.evt&&stats.evt.id==='mostra'&&stats.served>=30)S.found.mostra=1;if(stats.black)S.found.buio=1;
+ desks().forEach(d=>{if(d.eq.includes('pc'))d.cond=Math.max(0,wearOf(d)-(1.2+(d.served||0)*.015)*(hasT(d.st,'pcb')?.7:hasT(d.st,'dist')?1.4:1));d.served=0;});const rep=stats.repair||0,ex=(stats.bonus||0)-(stats.fine||0);if(S.dirt.length&&S.clean.length)S.dirt.splice(0,S.clean.length*12);desks().forEach(d=>d.broken=false);const rentD=(stats.rent=S.lvl>=5?Math.round((40*Math.pow(S.lvl-4,1.6)*(1+.8*PR())+desks().length*12*PR())*hardK()):0)+(stats.mish||0)+(stats.tax=S.lvl>=7?Math.round(stats.inc*(.08+.035*PR())*hardK()):0);const res=stats.inc-stats.stolen+atmI-sal-pen-rep+ex-rentD;S.cash+=atmI-sal-pen-rep-rentD;S.noRob=stats.robbed==null?S.noRob+1:0;S.best=Math.max(S.best||0,stats.served);if(stats.served>=15&&stats.left===0)S.found.perfetto=1;if(stats.evt&&stats.evt.id==='mostra'&&stats.served>=30)S.found.mostra=1;if(stats.black)S.found.buio=1;
  stats.atmN=atmN;stats.atmI=atmI;stats.sal=sal;stats.res=res;S.lastLR=stats.left/Math.max(1,stats.served+stats.left);S.hist.push({lf:stats.left,d:S.day,date:dateOf(S.day).toISOString().slice(0,10),inc:Math.round(stats.inc),sv:stats.served,res:Math.round(res),wx:S.wx,ev:stats.evt?stats.evt.n:''});if(S.hist.length>400)S.hist.shift();S.day++;phase='summary';save();showSummary();ui();}
 function tick(dt){
  if(stats&&phase!=='summary'){
@@ -450,10 +450,10 @@ function showGoals(){const done=Object.keys(S.goals).length;
 const EVTS=[{id:'mostra',n:'Mostra filatelica',d:'più clienti, tanti per i francobolli da collezione',mult:1.5,boost:['frc','fol'],k:6},
 {id:'pensioni',n:'Giorno delle pensioni',d:'più clienti per le pensioni',mult:1.3,boost:['pn2'],k:5},
 {id:'sciopero',n:'Sciopero dei mezzi',d:'pochi clienti',mult:.6}];
-function pickEvent(){assign();lastHalf=false;S.clean.forEach(m=>{m.x=null;m.tg=null;});stats.inspAt=(S.day>=8&&Math.random()<.07)?rnd(OPEN+90,STOPARR-60):null;stats.evt=null;stats.black=null;stats.pcAt=null;stats.chAt=null;stats.chEv=null;stats.mish=(S.lvl>=6&&Math.random()<.2+.05*hardN())?Math.round(((S.hist.slice(-1)[0]||{}).inc||500)*rnd(.4,1)*hardK()/10)*10:0;{const el=CHEV.filter(e=>S.day>=(e.min||2)&&(!e.ok||e.ok()));if(S.day>=2&&el.length&&Math.random()<.45){stats.chEv=pick(el);stats.chAt=rnd(OPEN+60,STOPARR-100);}}
+function pickEvent(){assign();lastHalf=false;S.clean.forEach(m=>{m.x=null;m.tg=null;});stats.inspAt=(S.day>=8&&Math.random()<.07*(1+PR()))?rnd(OPEN+90,STOPARR-60):null;stats.evt=null;stats.black=null;stats.pcAt=null;stats.chAt=null;stats.chEv=null;stats.mish=(S.lvl>=6&&Math.random()<.2+.05*PR()+.05*hardN())?Math.round(((S.hist.slice(-1)[0]||{}).inc||500)*rnd(.4,1)*hardK()/10)*10:0;{const el=CHEV.filter(e=>S.day>=(e.min||2)&&(!e.ok||e.ok()));if(S.day>=2&&el.length&&Math.random()<.45){stats.chEv=pick(el);stats.chAt=rnd(OPEN+60,STOPARR-100);}}
  if(S.day>=3&&Math.random()<.3)stats.evt=pick(EVTS);
- if(S.day>=3&&Math.random()<.1*DF().evt){const a=rnd(OPEN+90,OPEN+220);stats.black=[a,a+45];}
- if(S.day>=2&&Math.random()<.12*DF().evt&&desks().some(d=>d.st&&d.eq.includes('pc')))stats.pcAt=rnd(OPEN+60,STOPARR-60);
+ if(S.day>=3&&Math.random()<.1*DF().evt*(1+1.5*PR())){const a=rnd(OPEN+90,OPEN+220);stats.black=[a,a+45];}
+ if(S.day>=2&&Math.random()<.12*DF().evt*(1+2*PR())&&desks().some(d=>d.st&&d.eq.includes('pc')))stats.pcAt=rnd(OPEN+60,STOPARR-60);
  if(stats.evt)banner('Oggi: '+stats.evt.n+' — '+stats.evt.d,stats.evt.id==='mostra'?'#8E24AA':'#1E56C8');}
 const blk=()=>!!(stats&&stats.black&&phase!=='prep'&&phase!=='summary'&&t>=stats.black[0]&&t<stats.black[1]);
 const BN=document.createElement('div');BN.style.cssText='position:absolute;left:50%;top:112px;transform:translate(-50%,-30px);opacity:0;transition:all .4s;z-index:6;padding:10px 16px;border-radius:14px;font-weight:900;font-size:15px;max-width:86%;text-align:center;pointer-events:none;box-shadow:0 4px 14px #0006;color:#fff';$('stage').appendChild(BN);
@@ -760,7 +760,7 @@ const DIFF=[{n:'Facile',d:'Parti con 3.000 €. Stipendi più bassi, rapine rare
 {n:'Normale',d:'Parti con 1.000 €. Quella consigliata.',cash:1000,sal:1,rob:1,pat:1,evt:1},
 {n:'Difficile',d:'Parti con 500 €. Stipendi più alti, più rapine e imprevisti, clienti meno pazienti.',cash:500,sal:1.3,rob:2,pat:.8,evt:1.6}];
 const DF=()=>DIFF[S.diff==null?1:S.diff];
-const hardN=()=>S.won?1+Math.floor((S.day-S.won)/365):0,hardK=()=>1+.1*hardN();
+const PR=()=>Math.max(0,Math.min(1,(S.lvl-5)/7)),hardN=()=>S.won?1+Math.floor((S.day-S.won)/365):0,hardK=()=>1+.1*hardN();
 const SALD=()=>SAL*DF().sal*(1+.04*S.lvl)*hardK();
 function chooseDiff(i){S.diff=i;S.diffSet=1;if(S.day===1&&!S.hist.length)S.cash=DIFF[i].cash;save();closeSheet();ui();}
 function showDiff(){const s=sheet('<h2>Scegli la difficoltà</h2><div style="font-size:13px;color:#5B6B86">Si sceglie adesso e non si cambia più.</div>'+DIFF.map((d,i)=>'<div class="row"><div class="t"><b>'+d.n+'</b><span>'+d.d+'</span></div><button data-d="'+i+'">Scegli</button></div>').join(''),'Normale (consigliata)');
