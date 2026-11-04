@@ -57,7 +57,17 @@ canvas{width:100%;height:100%;display:block;touch-action:none}
 .dc button{background:#FFC82E;color:#14233F;border-bottom:4px solid #D99A12;font-weight:900;padding:10px 16px;border-radius:12px}
 #stn{display:none;flex-direction:column;align-items:center;width:100%;flex:none;padding-bottom:18px}#stn>img{width:100%;display:block}#stn button{border:0;background:none;padding:0;margin:10px 0 0;cursor:pointer}#stn button img{display:block;width:100%}#stn .bp{width:80%;margin-top:14px}#stn .bs{width:68%}#stn button:active{transform:scale(.97)}
 @media (max-aspect-ratio:5/4){#start{flex-direction:column;justify-content:center;overflow:auto}#stg{display:none}#stn{display:flex}#stp{display:none!important}}
-#sheet .row .t{min-width:0}#sheet .row{min-width:0}</style></head><body>
+#sheet .row .t{min-width:0}#sheet .row{min-width:0}@media (min-aspect-ratio:3/2) and (min-width:640px){
+#app{max-width:none;display:grid;grid-template-columns:clamp(150px,19vw,230px) 1fr;grid-template-rows:auto 1fr}
+#top{grid-area:1/1;flex-direction:column;align-items:stretch;gap:8px;padding:12px 10px}
+#cash{font-size:20px;text-align:center}#mid{flex:none}#clock{font-size:26px}#day{font-size:11px}
+#speeds{justify-content:space-between}#speeds button{flex:1;width:auto}
+#stage{grid-area:1/2/3/3}
+#nav{grid-area:2/1;flex-direction:column;justify-content:flex-start;padding:4px 10px 12px;overflow:auto}
+#nav button{flex:none;padding:13px 4px;font-size:14px}#nav #go{order:-1;flex:none}
+#sheet>*{width:100%;max-width:860px;margin-left:auto;margin-right:auto;box-sizing:border-box}
+}
+</style></head><body>
 <div id="app">
  <div id="top"><div id="cash"></div><div id="mid"><span id="clock"></span><span id="day"></span><span id="rep" hidden></span></div><div id="speeds"><button id="s0">⏸</button><button id="s1" class="on">▶</button><button id="s2">▶▶</button><button id="s4">▶▶▶</button><button id="nHelp">?</button><button id="nMen">⚙</button></div></div>
  <div id="stage"><canvas id="cv"></canvas><div id="loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;background:#0b2f1c;z-index:9">Caricamento…</div><div id="msg"></div><button id="vw">Vista esterna</button><div id="tag">© 2026 G-Loc Prodz</div></div>
