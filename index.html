@@ -450,7 +450,7 @@ function showGoals(){const done=Object.keys(S.goals).length;
 const EVTS=[{id:'mostra',n:'Mostra filatelica',d:'più clienti, tanti per i francobolli da collezione',mult:1.5,boost:['frc','fol'],k:6},
 {id:'pensioni',n:'Giorno delle pensioni',d:'più clienti per le pensioni',mult:1.3,boost:['pn2'],k:5},
 {id:'sciopero',n:'Sciopero dei mezzi',d:'pochi clienti',mult:.6}];
-function pickEvent(){assign();lastHalf=false;S.clean.forEach(m=>{m.x=null;m.tg=null;});stats.inspAt=(S.day>=8&&Math.random()<.07*(1+PR()))?rnd(OPEN+90,STOPARR-60):null;stats.evt=null;stats.black=null;stats.pcAt=null;stats.chAt=null;stats.chEv=null;stats.mish=(S.lvl>=6&&Math.random()<.2+.05*PR()+.05*hardN())?Math.round(((S.hist.slice(-1)[0]||{}).inc||500)*rnd(.4,1)*hardK()/10)*10:0;{const el=CHEV.filter(e=>S.day>=(e.min||2)&&(!e.ok||e.ok()));if(S.day>=2&&el.length&&Math.random()<.45){stats.chEv=pick(el);stats.chAt=rnd(OPEN+60,STOPARR-100);}}
+function pickEvent(){assign();lastHalf=false;S.clean.forEach(m=>{m.x=null;m.tg=null;});stats.inspAt=(S.day>=8&&Math.random()<.07*(1+PR()))?rnd(OPEN+90,STOPARR-60):null;stats.evt=null;stats.black=null;stats.pcAt=null;stats.chAt=null;stats.chEv=null;stats.mish=(S.lvl>=6&&Math.random()<.2+.05*PR()+.05*hardN())?Math.round(((S.hist.slice(-1)[0]||{}).inc||500)*rnd(.4,1)*hardK()/10)*10:0;{const el=CHEV.filter(e=>S.day>=(e.min||2)&&(!e.ok||e.ok()));if(S.day>=2&&el.length&&Math.random()<.28){stats.chEv=pick(el);stats.chAt=rnd(OPEN+60,STOPARR-100);}}
  if(S.day>=3&&Math.random()<.3)stats.evt=pick(EVTS);
  if(S.day>=3&&Math.random()<.1*DF().evt*(1+1.5*PR())){const a=rnd(OPEN+90,OPEN+220);stats.black=[a,a+45];}
  if(S.day>=2&&Math.random()<.12*DF().evt*(1+2*PR())&&desks().some(d=>d.st&&d.eq.includes('pc')))stats.pcAt=rnd(OPEN+60,STOPARR-60);
