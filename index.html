@@ -596,8 +596,15 @@ function showRank(){const a=getScores().slice(),cur=S.hist.length?{p:scoreNow(fa
  sheet('<h2>Classifiche</h2>'+(a.length?a.slice(0,10).map((e,i)=>'<div class="row" style="'+(e.cur?'background:#FFF3C4;border-radius:10px;padding:2px 6px':'')+'"><div class="t"><b>'+(i+1)+'. '+esc(e.n)+'</b><span>Livello '+e.l+' · giorno '+e.d+' · '+e.r+'</span></div><b>'+e.p+'</b></div>').join(''):'<div style="color:#5B6B86">Ancora nessuna partita. Gioca: il tuo punteggio comparirà qui.</div>')+
  '<div style="font-size:12px;color:#5B6B86;margin-top:10px">Il punteggio conta gli incassi, il livello, i trofei, i francobolli e le stelle delle valutazioni. Vincere dà un grosso bonus, e più sei veloce più ne prendi. Anche il fallimento resta in classifica.</div>');}
 function newGameReset(){try{Object.keys(localStorage).filter(k=>k.indexOf('uptycoon')===0).forEach(k=>localStorage.removeItem(k));}catch(e){}S=newState();phase='prep';t=OPEN;custs=[];speed=1;stats=null;tool=null;selDesk=null;view='in';assign();closeSheet();ui();setTimeout(()=>{try{location.reload();}catch(e){}},50);}
+function failWhy(){const H=S.hist.slice(-6),R=[];if(!H.length)return '';const inc=H.reduce((a,h)=>a+h.inc,0)/H.length,res=H.reduce((a,h)=>a+h.res,0)/H.length;
+ if(S.expDay&&S.day-S.expDay<=12)R.push('Poco prima hai speso quasi tutto per ingrandire l’ufficio e non ti è rimasta una riserva.');
+ if(res<0)R.push('Negli ultimi giorni spendevi più di quanto incassavi: stipendi, affitto e tasse pesavano troppo.');
+ if(H.some(h=>h.res<-.5*inc))R.push('Un imprevisto (rapina, multa o guasto) ti ha tolto molti soldi in un giorno.');
+ if(H.reduce((a,h)=>a+h.lf,0)>H.reduce((a,h)=>a+h.sv,0))R.push('Troppi clienti se ne sono andati senza essere serviti: servivano più sportelli o più dipendenti.');
+ if(!R.length)R.push('Le spese sono salite più dei guadagni.');
+ return '<div style="margin:12px 0 4px;font-weight:900;color:#1E56C8">Perché è andata male</div>'+R.slice(0,3).map(x=>'<div style="font-size:14px;margin:4px 0">• '+x+'</div>').join('')+'<div style="font-size:14px;margin:8px 0;padding:10px;border-radius:10px;background:#FFF4D6;color:#14233F"><b>Consiglio:</b> prima di ingrandirti tieni da parte i soldi di qualche giorno di spese.</div>';}
 function showGameOver(){S.over=1;save();const a=getScores().slice().sort((x,y)=>y.p-x.p),mine=S.over&&a.find(e=>e.d===S.day&&e.r==='Fallimento'),rank=mine?a.indexOf(mine)+1:0;
- const s2=sheet('<div style="text-align:center"><div style="font-size:50px">💥</div><h2>Hai fallito</h2><div style="font-size:15px">La cassa è rimasta in rosso troppo a lungo. L’ufficio chiude.</div></div><div class="row"><div class="t"><b>Giorni di gioco</b></div><b>'+S.day+'</b></div><div class="row"><div class="t"><b>Livello raggiunto</b></div><b>'+(S.lvl+1)+'</b></div><div class="row"><div class="t"><b>Punteggio</b></div><b>'+scoreNow(false)+'</b></div>'+(rank?'<div class="row"><div class="t"><b>Posizione in classifica</b></div><b>'+rank+'º</b></div>':'')+
+ const s2=sheet('<div style="text-align:center"><div style="font-size:50px">💥</div><h2>Hai fallito</h2><div style="font-size:15px">La cassa è rimasta in rosso troppo a lungo. L’ufficio chiude.</div></div>'+failWhy()+'<div class="row"><div class="t"><b>Giorni di gioco</b></div><b>'+S.day+'</b></div><div class="row"><div class="t"><b>Livello raggiunto</b></div><b>'+(S.lvl+1)+'</b></div><div class="row"><div class="t"><b>Punteggio</b></div><b>'+scoreNow(false)+'</b></div>'+(rank?'<div class="row"><div class="t"><b>Posizione in classifica</b></div><b>'+rank+'º</b></div>':'')+
   '<button id="gnw" style="margin-top:14px;width:100%;padding:14px;background:#F5B83D;color:#14233F;border-radius:12px;font-size:16px">Nuova partita</button><button id="grk" style="margin-top:8px;width:100%;padding:13px;background:#E9EEF6;color:#14233F;border-radius:12px;font-size:15px">Vedi la classifica</button>','Chiudi');
  s2.querySelector('#gnw').onclick=newGameReset;s2.querySelector('#grk').onclick=showRank;}
 function bankrupt(){recordScore('Fallimento');showGameOver();}
@@ -1362,7 +1369,7 @@ function unlockList(L){const o=[],add=(t,a)=>{if(a.length)o.push([t,a]);};
 function showUnlock(L){const u=unlockList(L);if(!u.length)return;sheet('<h2>Livello '+L+': novità</h2>'+u.map(a=>'<div class="row"><div class="t"><b>'+a[0]+'</b><span>'+a[1].map(tc).join(', ')+'</span></div></div>').join(''),'Chiudi');}
 function doExpand(c){
  const tags=S.objs.map(o=>{const r=roomOf(o.x,o.y);return r?r.id:'';}),of=fr();
- S.cash-=c;S.lvl++;const nf=fr(),dx=nf.x1-of.x1,dy=nf.y0-of.y0;
+ S.cash-=c;S.lvl++;S.expDay=S.day;const nf=fr(),dx=nf.x1-of.x1,dy=nf.y0-of.y0;
  const ds=S.objs.filter(o=>o.k==='desk'&&o.y===of.y0+1),mn=ds.length?Math.min(...ds.map(o=>o.x)):null,mx=ds.length?Math.max(...ds.map(o=>o.x)):null,sh=mn===of.x0?nf.x0-of.x0:mx===of.x1?nf.x1-of.x1:0;
  if(sh)S.rooms.rd=S.rooms.rd.map(x=>x+sh);
  S.objs.forEach((o,i)=>{const id=tags[i];if(id==='retro'||id==='post'){o.y+=dy;}else if(id.startsWith('cons')){o.x+=dx;}else if(id==='main'&&o.k==='desk'&&o.y===of.y0+1){o.y=nf.y0+1;o.x+=sh;}else if(id==='main'&&o.y===of.y0&&(o.k==='ward'||o.k==='atm'||o.k==='safe')){o.y=nf.y0;o.x+=sh;}});
