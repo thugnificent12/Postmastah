@@ -13,7 +13,7 @@ html,body{margin:0;height:100%;background:#0b2f1c;color:#fff;font-family:'Nunito
 #clock{font-weight:900;font-size:18px}
 #day{display:block;font-size:10px;opacity:.7;font-weight:700}
 #speeds{display:flex;gap:3px;flex:none}
-button{font:inherit;font-weight:800;border:0;border-radius:10px;padding:9px 12px;background:var(--chrome2);color:#fff;cursor:pointer}
+button{font:inherit;font-weight:800;border:0;border-radius:10px;padding:9px 12px;background:var(--chrome2);color:#fff;cursor:pointer;touch-action:none}
 button:disabled{opacity:.4;cursor:default}
 #speeds button{padding:7px 0;width:30px;font-size:11px;background:#ffffff1f}
 #speeds button.on{background:var(--amber);color:#2b1d00}
@@ -1464,7 +1464,7 @@ cv.addEventListener('wheel',e=>{if(!zoomOK())return;e.preventDefault();const p=c
 /* tocco immediato sui tasti: scatta al rilascio del dito, non aspetta il click */
 let PDB=null,PUT=0;
 document.addEventListener('pointerdown',e=>{PDB=e.pointerType==='mouse'?null:(e.target.closest&&e.target.closest('button'));},true);
-document.addEventListener('pointerup',e=>{const b=e.pointerType==='mouse'?null:(e.target.closest&&e.target.closest('button'));if(b&&b===PDB&&!b.disabled){PUT=performance.now();b.click();}PDB=null;},true);
+document.addEventListener('pointerup',e=>{const b=e.pointerType==='mouse'?null:(e.target.closest&&e.target.closest('button'));if(b&&b===PDB&&!b.disabled){PUT=performance.now();const kill=ev=>{if(ev.isTrusted){ev.stopImmediatePropagation();ev.preventDefault();}};b.addEventListener('click',kill,true);setTimeout(()=>b.removeEventListener('click',kill,true),900);b.click();}PDB=null;},true);
 document.addEventListener('click',e=>{if(e.isTrusted&&performance.now()-PUT<900&&e.target.closest&&e.target.closest('button')){e.stopImmediatePropagation();e.preventDefault();}},true);
 /* tocco immediato sui tasti: scatta al rilascio del dito, non aspetta il click */
 /* ---------- ciclo ---------- */
