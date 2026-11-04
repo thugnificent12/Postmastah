@@ -199,7 +199,7 @@ const blinkOn=(N,off)=>{const p=((N+off)%4.6)/4.6;return p>.943&&p<.985;};
 const tapOn=(N,off)=>{const p=((N+off)%.55)/.55;return p>.22&&p<.72;};
 /* ---------- suoni (come in upsim) ---------- */
 let MGN=null;const OUT=()=>{if(!MGN){MGN=AC.createGain();MGN.connect(AC['destin'+'ation']);}MGN.gain.value=RT.vol/100;return MGN;};
-const RT={vol:(()=>{try{const v=localStorage.getItem('uptycoon.vol');return v==null?80:+v;}catch(e){return 80;}})(),snd:(()=>{try{return localStorage.getItem('uptycoon.snd')!=='0';}catch(e){return true;}})()};
+const RT={vol:(()=>{try{const v=localStorage.getItem('uptycoon.vol');return v==null?80:+v;}catch(e){return 80;}})(),snd:(()=>{try{return localStorage.getItem('uptycoon.snd')!=='0';}catch(e){return true;}})(),mus:(()=>{try{return localStorage.getItem('uptycoon.mus')!=='0';}catch(e){return true;}})(),mvol:(()=>{try{const v=localStorage.getItem('uptycoon.mvol');return v==null?80:+v;}catch(e){return 80;}})()};
 let AC=null,OPLAST=0;
 const TYPS=new Set(['cpa','cpp','cpc','cpv','cpi','bon','pcn','pcp','pcr','lin','tel','sim','cva','pola','polc','poli','polv','fin','pre','lba','lbp','lbv','buo','vag','vagi','scw','fra','tgm','bau','frc','fol','cap']);
 function nt(f,t0,d,ty,g,lp,att){if(!RT.snd||!AC)return;try{const t=AC.currentTime+t0,o=AC.createOscillator(),gn=AC.createGain();o.type=ty;o.frequency.value=f;att=att||.008;gn.gain.setValueAtTime(.0001,t);gn.gain.exponentialRampToValueAtTime(g,t+att);gn.gain.exponentialRampToValueAtTime(.0001,t+d);if(lp){const fl=AC.createBiquadFilter();fl.type='lowpass';fl.frequency.value=lp;o.connect(fl);fl.connect(gn);}else o.connect(gn);gn.connect(OUT());o.start(t);o.stop(t+d+.05);}catch(e){}}
@@ -216,7 +216,18 @@ function opSnd(dur,beep){if(!RT.snd||!AC)return;const now=Date.now();if(now-OPLA
   while(true){t+=gap*(.5+Math.random())+(Math.random()<.12?gap*2:0);if(t>te)break;
    const s=AC.createBufferSource();s.buffer=ns;const f=AC.createBiquadFilter();f.type='highpass';f.frequency.value=1800+Math.random()*1400;const g=AC.createGain();g.gain.setValueAtTime(.35+Math.random()*.25,t);g.gain.exponentialRampToValueAtTime(.0008,t+.03);s.connect(f);f.connect(g);g.connect(M);s.start(t,Math.random()*1.5);s.stop(t+.05);
    const o=AC.createOscillator(),og=AC.createGain();o.type='sine';o.frequency.setValueAtTime(160+Math.random()*70,t);o.frequency.exponentialRampToValueAtTime(90,t+.04);og.gain.setValueAtTime(.12,t);og.gain.exponentialRampToValueAtTime(.0008,t+.04);o.connect(og);og.connect(M);o.start(t);o.stop(t+.06);}}catch(e){}}
-document.addEventListener('pointerdown',()=>{try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){}},{passive:true});
+let MB=null,MSRC=null,MG=null,MLOAD=0;
+function musicSync(){try{
+ if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();
+ if(!MG){MG=AC.createGain();MG.connect(AC['destin'+'ation']);}
+ MG.gain.value=RT.mus?RT.mvol/100*.45:0;
+ if(!MB&&!MLOAD){MLOAD=1;fetch('musica.mp3').then(r=>r.arrayBuffer()).then(b=>AC.decodeAudioData(b)).then(buf=>{MB=buf;musicSync();}).catch(()=>{MLOAD=0;});}
+ if(MB&&!MSRC){MSRC=AC.createBufferSource();MSRC.buffer=MB;MSRC.loop=true;MSRC.connect(MG);MSRC.start(0);}
+ if(!document.hidden){if(AC.state==='suspended')AC.resume();}else if(AC.state==='running')AC.suspend();
+}catch(e){}}
+document.addEventListener('visibilitychange',musicSync);
+document.addEventListener('pointerdown',()=>{try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){}musicSync();},{passive:true});
+document.addEventListener('keydown',()=>musicSync());document.addEventListener('touchend',()=>musicSync(),{passive:true});
 /* ---------- stato ---------- */
 const todayISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
 const newState=()=>({cam:0,ad:null,compSeen:0,promo:null,tutDone:0,floorT:0,floorOwned:{0:1},wallT:0,wallOwned:{0:1},diff:1,diffSet:0,won:0,start:todayISO(),hist:[],veh:0,signT:0,signN:'IL MIO UFFICIO',dirN:'',gv:Math.floor(Math.random()*10),town:'Cenide',signOwned:{0:1},reg:[],dirt:[],clean:[],cleanUnlock:0,cleanUnlockDay:0,oh:480,ch:815,wx:'sereno',prepDay:0,vol:80,cash:1000,day:1,rep:50,lvl:0,atm:false,door2:false,ramp:false,ac:false,heat:false,tint:false,posters:[],alarm:0,doorT:0,rooms:{retro:0,post:0,cons:0,rl:0,pl:0,rd:[],pdx:8},postmen:[],staff:[],objs:[{k:'desk',x:5,y:6,t:0,eq:[],st:null,cur:null}],packs:{},goals:{},noRob:0,found:{},best:0});
@@ -652,6 +663,15 @@ function showHours(){const open=phase==='open'||phase==='closing',lim=(v,a,b)=>M
  '<div class="row"><div class="t"><b>Chiusura</b><span>'+hh(S.ch+25)+'</span></div><button id="c-" '+(open?'disabled':'')+'>−</button><button id="c+" '+(open?'disabled':'')+'>+</button></div>');
  const set=(o,c)=>{o=lim(o,360,720);c=lim(c,o+240,1200);S.oh=o;S.ch=c;OPEN=o;STOPARR=c;END=c+25;t=OPEN;save();assign();ui();showHours();};
  s.querySelector('#o-').onclick=()=>set(S.oh-30,S.ch);s.querySelector('#o+').onclick=()=>set(S.oh+30,S.ch);s.querySelector('#c-').onclick=()=>set(S.oh,S.ch-30);s.querySelector('#c+').onclick=()=>set(S.oh,S.ch+30);}
+function showSuoni(){
+ const sv=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
+ const s=sheet(`<h2>Suoni</h2>
+ <div class="row"><div class="t"><b>Volume musica</b><span><input id="mv" type="range" min="0" max="100" value="${RT.mvol}" style="width:100%;min-width:0;max-width:100%;box-sizing:border-box"></span></div></div>
+ <div class="row"><div class="t"><b>Musica</b><span>${RT.mus?'Attiva':'Spenta'}</span></div><button id="mu">${RT.mus?'Spegni':'Accendi'}</button></div>
+ <div class="row"><div class="t"><b>Suoni</b><span>${RT.snd?'Attivi':'Spenti'}</span></div><button id="sn2">${RT.snd?'Spegni':'Accendi'}</button></div>`);
+ s.querySelector('#mv').oninput=e=>{RT.mvol=+e.target.value;sv('uptycoon.mvol',RT.mvol);musicSync();};
+ s.querySelector('#mu').onclick=()=>{RT.mus=!RT.mus;sv('uptycoon.mus',RT.mus?'1':'0');musicSync();showSuoni();};
+ s.querySelector('#sn2').onclick=()=>{RT.snd=!RT.snd;sv('uptycoon.snd',RT.snd?'1':'0');if(RT.snd)ding();showSuoni();};}
 function showMenu(){
  const s=sheet(`<h2>Menu</h2>
  <div class="row"><div class="t"><b>Obiettivi</b><span>${Object.keys(S.goals).length} su ${GOALS.length}</span></div><button id="gl">Vedi</button></div>
@@ -661,17 +681,14 @@ function showMenu(){
  <div class="row"><div class="t"><b>Lingua</b><span>${LNAME[LANG]}</span></div><button id="lg">Cambia</button></div>
  <div class="row"><div class="t"><b>Valutazione</b><span>${Math.max(0,S.evalNext-S.day)>0?'Prossima tra '+Math.max(0,S.evalNext-S.day)+' giorni':'Oggi'}${S.evalH.length?' · ultima: '+'★'.repeat(S.evalH[S.evalH.length-1].stars):''}</span></div><button id="ev">Vedi</button></div>
  <div class="row"><div class="t"><b>Bacheca</b><span>Trofei, missioni e collezione</span></div><button id="bc">Vedi</button></div>
- <div class="row"><div class="t"><b>Suoni</b><span>${RT.snd?'Attivi':'Spenti'}</span></div><button id="sn">${RT.snd?'Spegni':'Accendi'}</button></div>
- <div class="row"><div class="t"><b>Volume</b><span><input id="vl" type="range" min="0" max="100" value="${RT.vol}" style="width:100%;min-width:0;max-width:100%;box-sizing:border-box"></span></div></div>
+ <div class="row"><div class="t"><b>Suoni</b><span>Musica e suoni</span></div><button id="sn">Vedi</button></div>
  <div class="row"><div class="t"><b>Salva su file</b><span>Il gioco salva già da solo; questo crea una copia</span></div><button id="sv">Salva</button></div>
  <div class="row"><div class="t"><b>Carica da file</b><span>Riprendi una partita salvata</span></div><button id="ld">Carica</button><input id="lf" type="file" accept=".json" style="display:none"></div>
  <div class="row"><div class="t"><b>Nuova partita</b><span>Cancella tutto e ricomincia da zero</span></div><button class="sell" id="nw">Nuova</button></div>`);
  s.querySelector('#gl').onclick=showGoals;s.querySelector('#st').onclick=showStats;s.querySelector('#cp').onclick=showComp;
  s.querySelector('#ev').onclick=showEval;s.querySelector('#bc').onclick=showBacheca;
  s.querySelector('#lg').onclick=()=>{setLang(LANGS[(LANGS.indexOf(LANG)+1)%LANGS.length]);showMenu();};
- s.querySelector('#sn').onclick=()=>{RT.snd=!RT.snd;try{localStorage.setItem('uptycoon.snd',RT.snd?'1':'0');}catch(e){}if(RT.snd)ding();showMenu();};
- s.querySelector('#vl').oninput=e=>{RT.vol=+e.target.value;try{localStorage.setItem('uptycoon.vol',RT.vol);}catch(x){}if(MGN)MGN.gain.value=RT.vol/100;};
- s.querySelector('#vl').onchange=()=>{if(RT.snd)ding();};
+ s.querySelector('#sn').onclick=showSuoni;
  s.querySelector('#sv').onclick=()=>{try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='direttore-ufficio-salvataggio.json';document.body.appendChild(a);a.click();a.remove();setMsg('Salvataggio creato');}catch(e){setMsg('Non riesco a creare il file');}};
  s.querySelector('#ld').onclick=()=>s.querySelector('#lf').click();
  s.querySelector('#lf').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o||!o.objs)throw 0;localStorage.setItem(KEY,JSON.stringify(o));location.reload();}catch(x){setMsg('File non valido');}};r.readAsText(f);};
@@ -1522,7 +1539,7 @@ function frame(now){
  if((phase==='open'||phase==='closing')&&speed>0){let dm=dr/MINSEC*speed;while(dm>0){const s=Math.min(.25,dm);tick(s);dm-=s;if(phase==='summary'||phase==='prep')break;}ui();}
  if(++FC%30===0)checkGoals();if(ST.style.display==='none'&&$('sheet').classList.contains('hidden'))draw();requestAnimationFrame(frame);}
 if(/[?&]debug=1/.test(location.search)){const D=document.createElement('div');D.style.cssText='position:fixed;left:0;right:0;top:0;z-index:99999;background:#000c;color:#7CFFB0;font:11px/1.25 monospace;padding:3px 5px;pointer-events:none;white-space:pre;max-height:30vh;overflow:hidden';document.body.appendChild(D);const L=[];const nm=e=>e?(e.tagName+(e.id?'#'+e.id:'')+(e.className&&typeof e.className==='string'?'.'+e.className.split(' ')[0]:'')+(e.textContent&&e.children.length<2?' "'+e.textContent.trim().slice(0,12)+'"':'')):'-';const T0=performance.now();const lg=(k,e)=>{const x=e.clientX,y=e.clientY;let at='';if(x!=null)at=' @'+Math.round(x)+','+Math.round(y)+' sotto:'+nm(document.elementFromPoint(x,y));L.push(((performance.now()-T0)/1000).toFixed(1)+' '+k+' '+(e.pointerType||'')+' '+nm(e.target)+at);while(L.length>9)L.shift();D.textContent='DEBUG tocchi\n'+L.join('\n');};['pointerdown','pointerup','pointercancel','click','touchstart','touchend','touchcancel'].forEach(k=>window.addEventListener(k,e=>{if(k.startsWith('touch')){const t=(e.changedTouches||[])[0]||{};lg(k,{clientX:t.clientX,clientY:t.clientY,target:e.target});}else lg(k,e);},true));window.addEventListener('error',e=>{L.push('ERRORE '+e.message);D.textContent='DEBUG tocchi\n'+L.join('\n');});}
-normNames();applyCosts();if(LANG!=='it')setLang(LANG);fixLayout();startDayPrep();assign();snapLoad();ui();requestAnimationFrame(frame);
+normNames();applyCosts();if(LANG!=='it')setLang(LANG);fixLayout();startDayPrep();assign();snapLoad();musicSync();ui();requestAnimationFrame(frame);
 window.__G={showRank,showRescue,redCheck,bankrupt,showGameOver,scoreNow,showBacheca,grantStamp,showMissionOffer,MIS,yearCheck,showPlan,showChoice,CHEV,showEvalResult,showEval,mlog,cImg:(i)=>cImg(i),SPR:()=>SPR,movers:(n)=>movers(n),envL:()=>envL(),zm:()=>ZM,showAds,showComp,compDaily,CAMS,ADS,COMP,startTour,finishStart,playStart,confetti,lightK:()=>lightK(),setT:v=>{t=v;},showDiff,showEnd,endCond,chooseDiff,spawnInspector,finishInspect,dirt:()=>S.dirt,showSign,startDayPrep,showPerson,showStaff,hitPerson,force:o=>{if(o.evt)stats.evt=EVTS.find(e=>e.id===o.evt);if(o.black)stats.black=[t,t+9999];if(o.sp){const c=custs.find(c=>!c.compOf);if(c)c.sp=o.sp;}},checkGoals,showGoals,GOALS,zoom:z=>zoomAt(cv.width/2,cv.height/2,z),pan:(x,y)=>{ZPX=x;ZPY=y;},doExpand,rooms,bfs,fr,buyRoom,setView:v=>{view=v;},packs:()=>S.packs,buyPack:id=>{S.cash-=PKN[id].c;S.packs[id]=1;},S:()=>S,tick,openDay,get phase(){return phase;},setSpeed:v=>speed=v,place,buyEq,desks,custs:()=>custs,hire:()=>{S.staff.push(newHire());assign();},stfKeys:()=>new Set(STAFFR.map((_,i)=>sKey(i))).size,staffF:()=>[...S.staff,...S.postmen].map(m=>m.f),stats:()=>stats,endDay};
 };
 </script></body></html>
