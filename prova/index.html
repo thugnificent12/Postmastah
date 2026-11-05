@@ -1192,7 +1192,7 @@ function treeAt(px,py,s,ty){ty=ty||0;
  else{g.fillStyle='#4F9A4A';rr(px-6*s,py-52*s,12*s,52*s,6*s);g.fill();rr(px-20*s,py-34*s,16*s,7*s,3.5*s);g.fill();rr(px-20*s,py-46*s,7*s,19*s,3.5*s);g.fill();rr(px+4*s,py-28*s,16*s,7*s,3.5*s);g.fill();rr(px+13*s,py-42*s,7*s,20*s,3.5*s);g.fill();
   g.fillStyle='#3B7F3A';g.fillRect(px+1*s,py-48*s,2.5*s,44*s);g.fillStyle='#F2D1E0';g.beginPath();g.arc(px,py-53*s,3*s,0,7);g.fill();}}
 function tree(x,y,sc,ty){const [px,py]=iso(x,y,0);treeAt(px,py,sc||1,ty);}
-function lamp(x,y){prism(x-.05,y-.05,x+.05,y+.05,0,64,'#4A5260','#3A414D','#2E343E');{const q0=iso(x,y,64),q1=iso(x,y,76),cr=Math.abs(q0[1]-q1[1])*.5,cc=iso(x,y,70),gr=g.createRadialGradient(cc[0]-cr*.3,cc[1]-cr*.35,cr*.1,cc[0],cc[1],cr);gr.addColorStop(0,'#FFF8D0');gr.addColorStop(.55,'#F5E6A0');gr.addColorStop(1,'#C7B35F');g.fillStyle=gr;g.beginPath();g.arc(cc[0],cc[1],cr,0,7);g.fill();}const p=iso(x,y,68);LG.push([p[0],p[1],20]);}
+function lamp(x,y){prism(x-.05,y-.05,x+.05,y+.05,0,64,'#4A5260','#3A414D','#2E343E');{const q0=iso(x,y,64),q1=iso(x,y,76),cr=Math.abs(q0[1]-q1[1])*.78,cc=iso(x,y,70),gr=g.createRadialGradient(cc[0]-cr*.3,cc[1]-cr*.35,cr*.1,cc[0],cc[1],cr);gr.addColorStop(0,'#FFF8D0');gr.addColorStop(.55,'#F5E6A0');gr.addColorStop(1,'#C7B35F');g.fillStyle=gr;g.beginPath();g.arc(cc[0],cc[1],cr,0,7);g.fill();}const p=iso(x,y,68);LG.push([p[0],p[1],20]);}
 function bench(a,b){prism(a,b,a+1.2,b+.4,10,14,'#8A6A45','#6E5236','#5A432A');prism(a+.05,b+.05,a+.15,b+.35,0,10,'#3A414D','#3A414D','#2E343E');prism(a+1.05,b+.05,a+1.15,b+.35,0,10,'#3A414D','#3A414D','#2E343E');prism(a,b,a+1.2,b+.08,14,26,'#8A6A45','#6E5236','#5A432A');}
 const hedgeP=(xa,ya,xb,yb)=>prism(xa,ya,xb,yb,0,15,'#4A9A40','#2E6E2E','#25602A');
 const brickP=(xa,ya,xb,yb)=>prism(xa,ya,xb,yb,0,10,'#D9715F','#B5473C','#8E3A2F');
@@ -1245,7 +1245,11 @@ function drawWard(o){const x=o.x,y=o.y,k=WT[o.t||0].kind,yb=y+.12,yf=y+.5,H=60;
  else if(k==='cas'){prism(x+.1,yb,x+.9,yf,0,H,'#9AA3B0','#7C8696','#667080');for(let r=0;r<5;r++)for(let c=0;c<4;c++){quadY(yf,x+.15+c*.18,x+.15+c*.18+.14,5+r*10.5,5+r*10.5+8.5,'#5F6A7C');quadY(yf,x+.18+c*.18,x+.2+c*.18,8+r*10.5,10+r*10.5,'#F5B83D');}}
  else{prism(x+.12,yb,x+.88,yf,0,H,'#4B5260','#353B47','#2A2F39');quadY(yf,x+.18,x+.82,6,H-6,'#3E4552');quadY(yf,x+.42,x+.58,24,38,'#F5B83D');quadY(yf,x+.18,x+.82,H-6,H-2,'#F5B83D');quadY(yf,x+.18,x+.82,6,10,'#F5B83D');}}
 function sprite(im,px,py,dy,rot,dx){if(!im.complete)return;const k=SPR.k;g.save();g.translate(px+(dx||0),py+(dy||0));if(rot)g.rotate(rot);g.drawImage(im,-SPR.w*k/2,-(SPR.feet-SPR.vy)*k,SPR.w*k,SPR.h*k);g.restore();}
-function sitSprite(im,px,py){if(!im.complete)return;const k=SPR.k,F=SPR.feet-SPR.vy,hip=F*.56,nh=im.naturalHeight||im.height,nw=im.naturalWidth||im.width,r=nh/SPR.h,W=SPR.w,drop=F*.13;g.save();g.translate(px,py);g.drawImage(im,0,0,nw,hip*r,-W*k/2,(-F+drop)*k,W*k,hip*k);g.drawImage(im,0,hip*r,nw,Math.max(1,(F-hip)*r),-W*k/2,(-F+drop+hip)*k,W*k,(F-hip)*.42*k);g.restore();}
+let SITV=2;
+function sitSprite(im,px,py){if(!im.complete)return;const k=SPR.k,F=SPR.feet-SPR.vy,W=SPR.w,H=SPR.h,hip=F*.55,
+ cf=SITV===1?.42:SITV===2?.5:SITV===3?.22:.35,kn=SITV===1?F:SITV===4?hip+(F-hip)*.7:hip+(F-hip)*.45,thH=(kn-hip)*cf,shH=F-kn,top=-(shH+thH+hip);
+ const seg=(a,b,A,B)=>{if(B<=A)return;const sc=(B-A)/((b-a)*k);g.save();g.beginPath();g.rect(px-60,py+A,120,B-A);g.clip();g.drawImage(im,px-W*k/2,py+A-a*sc*k,W*k,H*k*sc);g.restore();};
+ seg(0,hip,top*k,(top+hip)*k);seg(hip,kn,(top+hip)*k,(top+hip+thH)*k);if(shH>0)seg(kn,H,(top+hip+thH)*k,(H-F)*k-shH*k+shH*k);}
 function drawStaffChair(o){const x=o.x,y=o.y;prism(x+.3,y+.05,x+.7,y+.36,0,15,'#59647A','#46506A','#3A435A');prism(x+.3,y-.04,x+.7,y+.05,0,44,'#46506A','#46506A','#3A435A');}
 function drawStaff(o){if(o.st==null)return;const cy=o.k==='cons'?o.y+.3:o.y+.22,p=iso(o.x+.5,cy,0),N=performance.now()/1000,typing=o.cur&&o.cur.state==='serve',f=o.st.f;let im=sImg(f);if(blinkOn(N,o.x*.9+f)){const v=vImg('s'+f,STAFFR[f],1,0);if(v)im=v;}sprite(im,p[0],p[1],0+(typing?-Math.max(0,Math.sin(N*9+o.x))*1.4:0),0);idleProps(o,p,N);if(phase==='open'||phase==='closing'){const bd=o.st.bdDay===S.day;sayBubble(1000+Math.floor(o.x*53+o.y*7),bd?SAYS.bday:SAYS.staff,bd?.25:.07,p[0],p[1]-(SPR.feet-8)*SPR.k-2,N);}}
 function idleProps(o,p,N){if(phase!=='open'&&phase!=='closing')return;if(o.cur||o.broken||blk())return;const T=(N+o.x*3.1+o.y)%14,px=p[0],py=p[1],ez=u=>u*u*(3-2*u);
@@ -1332,11 +1336,11 @@ function place(k,x,y,t){
  t=t||0;{const lv=ulK(k+(['desk','chair','ward','poster','deco','wc'].includes(k)?':'+t:''));if(lv>S.lvl+1){setMsg('Si sblocca al livello '+lv);return;}}const cost=costOf(k,t);
  if(S.cash<cost){setMsg('Cassa insufficiente');return;}
  if(!canPlace(k,x,y,t)){setMsg(k==='door'?(S.rooms.retro?'La porta va nello spazio dietro le scrivanie':'Serve prima il retrosportello'):(k==='totem'&&hasTotem())||((k==='atm'||k==='safe')&&S.objs.some(o=>o.k===k))?'Ce n’è già uno':k==='desk'?'La prima scrivania parte da un lato in fondo, le altre vanno attaccate':k==='rdesk'?'Si mette nel retrosportello (massimo 2)':k==='pdesk'?'Il banco va lungo il muro di fondo della sala postini':'Qui non si può: serve spazio libero e il passaggio deve restare libero');return;}
- if(k==='door'){S.rooms.rd.push(x);S.cash-=cost;save();ui();return;}
+ if(k==='door'){S.rooms.rd.push(x);S.cash-=cost;save();ui();return true;}
  const n=k==='deco'||k==='tpc'||k==='wc'?{k,x,y,t}:k==='chair'||k==='ward'?{k,x,y,t,res:null}:(k==='totem'||k==='atm'||k==='safe')?{k,x,y}:{k,x,y,t,eq:[],st:null,cur:null};
  S.objs.push(n);
  if(k!=='chair'&&!(k==='deco'&&DECO[t].walk)&&!connectedOK()){S.objs.pop();setMsg('Passaggio bloccato');return;}
- S.cash-=cost;fxPop(x+.5,y+.6);assign();save();ui();}
+ S.cash-=cost;fxPop(x+.5,y+.6);assign();save();ui();return true;}
 function removeAt(x,y){
  if(phase==='open'||phase==='closing'){setMsg('Si può rimuovere solo a ufficio chiuso');return;}
  {const f0=fr();if(y===f0.y0&&S.rooms.rd.includes(x)&&!objAt(x,y)){S.rooms.rd.splice(S.rooms.rd.indexOf(x),1);S.cash+=Math.round(COST.door*.35);save();ui();setMsg('Porta venduta');return;}}
@@ -1506,9 +1510,9 @@ cv.addEventListener('pointerleave',()=>{hover=null;});
 function tap(e){
   const [x,y]=tileOf(e,0);hover=[x,y];
  if(mvObj){const o=mvObj;if(o.x===x&&o.y===y){mvObj=null;ui();return;}if(!S.objs.includes(o)){mvObj=null;ui();return;}const i=S.objs.indexOf(o);S.objs.splice(i,1);const ok=canPlace('chair',x,y,o.t);S.objs.splice(i,0,o);if(!ok){setMsg('Qui non si può mettere la sedia');return;}o.x=x;o.y=y;o.res=null;mvObj=null;assign();save();ui();setMsg('Sedia spostata');return;}
- if(tool&&kindOf(tool)==='poster'){const h=wallHit(e);PHOVER=h;const c=costOf('poster',typeOf(tool));if(S.cash<c){setMsg('Cassa insufficiente');return;}if(!posterOK(h)){setMsg('Qui non si può: scegli un pezzo di parete libero');return;}S.posters.push({w:h.w,p:h.p,t:typeOf(tool)});S.cash-=c;save();ui();}
+ if(tool&&kindOf(tool)==='poster'){const h=wallHit(e);PHOVER=h;const c=costOf('poster',typeOf(tool));if(S.cash<c){setMsg('Cassa insufficiente');return;}if(!posterOK(h)){setMsg('Qui non si può: scegli un pezzo di parete libero');return;}S.posters.push({w:h.w,p:h.p,t:typeOf(tool)});S.cash-=c;save();setTool(null);}
  else if(tool==='remove'&&(()=>{const h=wallHit(e);const i=h?S.posters.findIndex(q=>q.w===h.w&&q.p===h.p):-1;if(i>=0){if(phase==='open'||phase==='closing'){setMsg('Si può rimuovere solo a ufficio chiuso');return true;}const q=S.posters.splice(i,1)[0];S.cash+=Math.round(POSTER[q.t||0].c*.35);save();ui();return true;}return false;})()){}
- else if(tool&&tool!=='remove')place(kindOf(tool),x,y,typeOf(tool));
+ else if(tool&&tool!=='remove'){if(place(kindOf(tool),x,y,typeOf(tool)))setTool(null);}
  else if(tool==='remove'){const o=hitObj(e);if(o)removeAt(o.x,o.y);}
  else{const pr=hitPerson(e);if(pr)showPerson(pr.m,pr.kind);else{const o=hitObj(e);if(o&&(o.k==='desk'||o.k==='cons'||o.k==='rdesk'))showDesk(o);else if(o&&o.k==='chair'){closeSheet();if(phase==='open'||phase==='closing')setMsg('La sedia si sposta solo a ufficio chiuso');else{mvObj=o;ui();}}else closeSheet();}}
 }
