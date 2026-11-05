@@ -35,7 +35,7 @@ canvas{width:100%;height:100%;display:block;touch-action:none}
 #sheet h2{font-size:22px}
 #sheet h2{margin:0 0 8px;font-size:18px}
 .row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
-.row .t{flex:1}.row .t b{display:block}.row .t span{display:block;font-size:13px;color:var(--muted)}
+.row .th{width:52px;height:52px;flex:none;border-radius:10px;background:#EEF2F7}.row .t{flex:1}.row .t b{display:block}.row .t span{display:block;font-size:13px;color:var(--muted)}
 .row button.sell,button.sell{background:var(--bad)}
 .faces{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
 .faces img{height:78px;width:auto}
@@ -425,7 +425,7 @@ function tick(dt){
  if((phase==='closing'&&(custs.length===0))||t>=END)endDay();}
 /* ---------- disegno ---------- */
 const TW=60;
-const cv=$('cv'),g=cv.getContext('2d');
+const cv=$('cv');let g=cv.getContext('2d');
 let DPR=1,cam={sc:1,ox:0,oy:0,vx0:0,vy0:0};
 function fit(){const r=cv.getBoundingClientRect();DPR=window.devicePixelRatio||1;cv.width=Math.max(100,Math.round(r.width*DPR));cv.height=Math.max(100,Math.round(r.height*DPR));}
 new ResizeObserver(fit).observe($('stage'));fit();
@@ -1390,13 +1390,26 @@ function ui(){
  const cancel=(tool||mvObj)?'<button class="acc" id="cx">Annulla</button>':'';
  const mh=m?'<span>'+m+'</span>'+cancel:'',mg=$('msg');if(mg._h!==mh){mg._h=mh;mg.style.display=m?'flex':'none';mg.innerHTML=mh;if(tool||mvObj)$('cx').onclick=()=>setTool(null);}
 }
+const THC={};
+function objThumb(key){
+ if(THC[key])return THC[key];
+ const [a,b]=String(key).split(':'),t=+b||0,o={k:a,x:0,y:0,t,eq:[]};
+ const cvs=document.createElement('canvas');cvs.width=cvs.height=156;const c2=cvs.getContext('2d');
+ const old=g;g=c2;
+ try{c2.save();const sc=a==='chair'?2.3:1.9;c2.translate(78,a==='chair'?112:116);c2.scale(sc,sc);c2.translate(0,-IH/2);
+  const A=a==='ward'?[drawWard]:a==='deco'?[drawDeco]:a==='atm'||a==='safe'?[drawMisc]:a==='totem'?[drawTotem]:a==='wc'?[drawWc]:a==='pdesk'?[drawPdesk]:a==='tpc'?[drawTpc]:a==='chair'?[chairFront,chairBack]:[drawDesk];
+  const oo=(a==='rdesk')?{k:'rdesk',x:0,y:0,t:0,eq:[]}:o;
+  A.forEach(f=>f(oo));c2.restore();}catch(e){}
+ g=old;
+ return THC[key]=cvs.toDataURL();
+}
 function showArredi(){
- const row=(k,n,d,c,extra)=>{const L=ulK(k),lk=L>S.lvl+1;return `<div class="row"><div class="t"><b>${n}</b><span>${lk?'Si sblocca al livello '+L:(d?d+' · ':'')+eur(c)}</span></div><button data-k="${k}" ${S.cash<c||extra||lk?'disabled':''}>Compra</button></div>`;};
- const h='<h2>Arredi</h2><div style="font-weight:900;color:#1E56C8;margin-top:6px">Scrivanie</div>'+DESKT.map((d,i)=>row('desk:'+i,d.n,'',d.c)).join('')+
- '<div style="font-weight:900;color:#1E56C8;margin-top:12px">Sedie al pubblico</div>'+CHAIRT.map((d,i)=>row('chair:'+i,d.n,'',d.c)).join('')+
+ const row=(k,n,d,c,extra)=>{const L=ulK(k),lk=L>S.lvl+1;return `<div class="row"><img class="th" src="${objThumb(k)}"><div class="t"><b>${n}</b><span>${lk?'Si sblocca al livello '+L:(d?d+' · ':'')+eur(c)}</span></div><button data-k="${k}" ${S.cash<c||extra||lk?'disabled':''}>Compra</button></div>`;};
+ const h='<h2>Arredi</h2><div style="font-weight:900;color:#1E56C8;margin-top:6px">Scrivanie</div>'+DESKT.map((d,i)=>row('desk:'+i,d.n,'Per un nuovo dipendente',d.c)).join('')+
+ '<div style="font-weight:900;color:#1E56C8;margin-top:12px">Sedie al pubblico</div>'+CHAIRT.map((d,i)=>row('chair:'+i,d.n,'Per i clienti in attesa',d.c)).join('')+
  '<div style="font-weight:900;color:#1E56C8;margin-top:12px">Armadi</div>'+WT.map((w,i)=>row('ward:'+i,w.n,w.kind==='doc'?'Per ritiri di raccomandate e pacchi':w.kind==='cas'?'Per la casella postale':'Per i soldi',w.c)).join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Poster promozionali</div>'+POSTER.map((p,i)=>p.rare&&!S.goals[p.rare]?'':row('poster:'+i,p.n,p.rare?'Premio · si attacca alle pareti senza finestre':'Si attacca alle pareti senza finestre',p.c)).join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Area relax</div>'+DECO.map((d,i)=>d.g==='r'?row('deco:'+i,d.n,d.d,d.c):'').join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Piante</div>'+DECO.map((d,i)=>d.g==='p'?row('deco:'+i,d.n,d.d,d.c):'').join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Per abbellire</div>'+DECO.map((d,i)=>d.g==='a'?row('deco:'+i,d.n,d.d,d.c):'').join('')+(DECO.some(d=>d.g==='x'&&S.found[d.rare])?'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Pezzi rari</div>'+DECO.map((d,i)=>d.g==='x'&&S.found[d.rare]?row('deco:'+i,d.n,'Nuovo! Pezzo raro',d.c):'').join(''):'')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Bagno</div>'+BAGNI.map((b,i)=>S.objs.some(o=>o.k==='wc'&&o.t===i)?'':row('wc:'+i,b.n,i===0?'Per tutti':'Servizio separato',b.c,false)).join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Altro</div>'+
- `<div class="row"><div class="t"><b>Totem con i numeri</b><span>${hasTotem()?'Già presente':UL.totem>S.lvl+1?'Si sblocca al livello '+UL.totem:eur(COST.totem)+' · i clienti prendono il numero. I display allo sportello si comprano dallo sportello'}</span></div>${hasTotem()?'':`<button data-k="totem" ${S.cash<COST.totem||UL.totem>S.lvl+1?'disabled':''}>Compra</button>`}</div>`+
- [['atm','ATM','Si mette ovunque, anche fuori davanti. Guadagni a fine giornata dai prelievi (commissione '+eur(ATM_FEE)+')'],['safe','Cassaforte','']].map(([k,n,d])=>{const have=S.objs.some(o=>o.k===k);return `<div class="row"><div class="t"><b>${n}</b><span>${have?'Già presente':UL[k]>S.lvl+1?'Si sblocca al livello '+UL[k]:(d?d+' · ':'')+eur(COST[k])}</span></div>${have?'':`<button data-k="${k}" ${S.cash<COST[k]||UL[k]>S.lvl+1?'disabled':''}>Compra</button>`}</div>`;}).join('')+
+ `<div class="row"><img class="th" src="${objThumb('totem')}"><div class="t"><b>Totem con i numeri</b><span>${hasTotem()?'Già presente':UL.totem>S.lvl+1?'Si sblocca al livello '+UL.totem:eur(COST.totem)+' · i clienti prendono il numero. I display allo sportello si comprano dallo sportello'}</span></div>${hasTotem()?'':`<button data-k="totem" ${S.cash<COST.totem||UL.totem>S.lvl+1?'disabled':''}>Compra</button>`}</div>`+
+ [['atm','ATM','Si mette ovunque, anche fuori davanti. Guadagni a fine giornata dai prelievi (commissione '+eur(ATM_FEE)+')'],['safe','Cassaforte','']].map(([k,n,d])=>{const have=S.objs.some(o=>o.k===k);return `<div class="row"><img class="th" src="${objThumb(k)}"><div class="t"><b>${n}</b><span>${have?'Già presente':UL[k]>S.lvl+1?'Si sblocca al livello '+UL[k]:(d?d+' · ':'')+eur(COST[k])}</span></div>${have?'':`<button data-k="${k}" ${S.cash<COST[k]||UL[k]>S.lvl+1?'disabled':''}>Compra</button>`}</div>`;}).join('')+
  (S.rooms.retro?row('door','Porta del retrosportello','',COST.door,false):'')+
  (S.rooms.post?row('pdesk','Banco per i portalettere','Con posta e pacchi sopra, senza PC',COST.pdesk,false):'')+
  (S.rooms.retro?row('tpc','Postazione di formazione','Per far migliorare i dipendenti · massimo 2',COST.tpc,S.objs.filter(o=>o.k==='tpc').length>=2):'')+(S.rooms.retro?row('rdesk','Scrivania del retrosportello','Solo PC · massimo 2',COST.rdesk,S.objs.filter(o=>o.k==='rdesk').length>=2):'')+
@@ -1463,18 +1476,18 @@ function doExpand(c){
 function showMig(){
  const lvl=S.lvl,last=lvl>=ROOMS.length-1,c=EXP_C[lvl+1];
  const s=sheet(`<h2>Migliorie</h2>
- ${(()=>{const need=S.lvl<2;return `<div class="row"><div class="t"><b>Seconda porta</b><span>${S.door2?'Acquistata':need?'Serve almeno l’ufficio di livello 3':eur(MC.door2)}</span></div>${S.door2||need?'':`<button id="d2" ${S.cash<MC.door2?'disabled':''}>Compra</button>`}</div>`;})()}
- ${(()=>{const a=S.alarm||0,n=ALARM[a+1];return `<div class="row"><div class="t"><b>Allarme</b><span>${ALARM[a].n}${n?' · prossimo: '+n.n+' '+eur(n.c):' · massimo'}</span></div>${n?`<button id="al" ${S.cash<n.c?'disabled':''}>Compra</button>`:''}</div>`;})()}
- ${(()=>{const t=S.doorT||0,n=DOORT[t+1];return `<div class="row"><div class="t"><b>Porta d’ingresso</b><span>${DOORT[t].n}${n?' · prossima: '+n.n+' '+eur(n.c):' · massima sicurezza'}</span></div>${n?`<button id="dt" ${S.cash<n.c?'disabled':''}>Cambia</button>`:''}</div>`;})()}
- ${[['ac','Condizionatore',MC.ac],['heat','Riscaldamento',MC.heat],['tint','Vetri oscurati',MC.tint]].map(([k,n,c])=>`<div class="row"><div class="t"><b>${n}</b><span>${S[k]?'Acquistato':eur(c)}</span></div>${S[k]?'':`<button data-u="${k}" data-c="${c}" ${S.cash<c?'disabled':''}>Compra</button>`}</div>`).join('')}
- <div class="row"><div class="t"><b>Passerella per disabili</b><span>${S.ramp?'Acquistata':eur(MC.ramp)}</span></div>${S.ramp?'':`<button id="rp" ${S.cash<MC.ramp?'disabled':''}>Compra</button>`}</div>
+ ${(()=>{const need=S.lvl<2;return `<div class="row"><div class="t"><b>Seconda porta</b><span>${S.door2?'Acquistata':need?'Serve almeno l’ufficio di livello 3':'Una seconda porta all’ingresso · '+eur(MC.door2)}</span></div>${S.door2||need?'':`<button id="d2" ${S.cash<MC.door2?'disabled':''}>Compra</button>`}</div>`;})()}
+ ${(()=>{const a=S.alarm||0,n=ALARM[a+1];return `<div class="row"><div class="t"><b>Allarme</b><span>${ALARM[a].n} · se c’è una rapina, ti ridà parte dei soldi${n?' · prossimo: '+n.n+' '+eur(n.c):' · massimo'}</span></div>${n?`<button id="al" ${S.cash<n.c?'disabled':''}>Compra</button>`:''}</div>`;})()}
+ ${(()=>{const t=S.doorT||0,n=DOORT[t+1];return `<div class="row"><div class="t"><b>Porta d’ingresso</b><span>${DOORT[t].n} · cambia solo l’aspetto${n?' · prossima: '+n.n+' '+eur(n.c):' · massima sicurezza'}</span></div>${n?`<button id="dt" ${S.cash<n.c?'disabled':''}>Cambia</button>`:''}</div>`;})()}
+ ${[['ac','Condizionatore',MC.ac,'Col caldo vengono più clienti'],['heat','Riscaldamento',MC.heat,'Col freddo vengono più clienti'],['tint','Vetri oscurati',MC.tint,'Cambia solo l’aspetto']].map(([k,n,c,d])=>`<div class="row"><div class="t"><b>${n}</b><span>${S[k]?'Acquistato':d+' · '+eur(c)}</span></div>${S[k]?'':`<button data-u="${k}" data-c="${c}" ${S.cash<c?'disabled':''}>Compra</button>`}</div>`).join('')}
+ <div class="row"><div class="t"><b>Passerella per disabili</b><span>${S.ramp?'Acquistata':'Ti chiede il sindaco, serve per i controlli · '+eur(MC.ramp)}</span></div>${S.ramp?'':`<button id="rp" ${S.cash<MC.ramp?'disabled':''}>Compra</button>`}</div>
  ${(()=>{const R=S.rooms,f=fr(),h=f.y1-f.y0+1,i=R.cons,canC=h>=CD*(i+1)&&i<8;const row=(id,n,d,c,dis,have,att)=>`<div class="row"><div class="t"><b>${n}</b><span>${d}</span></div>${have?'':`<button data-${att||'r'}="${id}" ${(dis||S.cash<c)?'disabled':''}>Compra</button>`}</div>`;
-  return row('retro','Retrosportello',R.retro?'Acquistato':eur(ROOMC.retro),ROOMC.retro,false,R.retro)+
+  return row('retro','Retrosportello',R.retro?'Acquistato':'Stanza dietro gli sportelli, con postazioni di lavoro · '+eur(ROOMC.retro),ROOMC.retro,false,R.retro)+
   (R.retro?row('retro','Ingrandisci il retrosportello','Livello '+(R.rl+1)+' di 3'+(R.rl<2?' · '+eur(RUP[R.rl]):' · massimo'),RUP[R.rl]||0,R.rl>=2,R.rl>=2,'up'):'')+
   row('post','Sala postini',R.post?'Acquistata':R.retro?eur(ROOMC.post):'Serve prima il retrosportello',ROOMC.post,!R.retro,R.post)+
   (R.post?row('post','Ingrandisci la sala postini','Livello '+(R.pl+1)+' di 3'+(R.pl<2?' · '+eur(PUP[R.pl]):' · massimo'),PUP[R.pl]||0,R.pl>=2,R.pl>=2,'up'):'')+
   row('cons','Sala consulenza','Sale: '+R.cons+' di 8 · solo per finanziamenti e prestiti · '+(i>=8?'massimo raggiunto':canC?eur(ROOMC.cons):'serve un ufficio più grande'),ROOMC.cons,!canC,false);})()}
- ${(()=>{const c=S.cam||0,n=CAMS[c+1];return `<div class="row"><div class="t"><b>Telecamere</b><span>${CAMS[c].n}${n?' · prossimo: '+n.n+' '+eur(n.c):' · massimo'}</span></div>${n?`<button id="cm" ${S.cash<n.c?'disabled':''}>Compra</button>`:''}</div>`;})()}
+ ${(()=>{const c=S.cam||0,n=CAMS[c+1];return `<div class="row"><div class="t"><b>Telecamere</b><span>${CAMS[c].n} · meno rapine${n?' · prossimo: '+n.n+' '+eur(n.c):' · massimo'}</span></div>${n?`<button id="cm" ${S.cash<n.c?'disabled':''}>Compra</button>`:''}</div>`;})()}
  ${S.lvl+1>=13?`<div class="row"><div class="t"><b>Auditorium</b><span>${S.audit?(S.evAt!=null&&S.day-S.evAt<7?'Prossimo evento tra '+(7-(S.day-S.evAt))+' giorni':'Organizza un evento speciale: domani arrivano molti più clienti · '+eur(AUD_EV)):'Una sala per gli eventi speciali · '+eur(AUD_C)}</span></div><button id="au" ${(S.audit?(S.cash<AUD_EV||(S.evAt!=null&&S.day-S.evAt<7)):S.cash<AUD_C)?'disabled':''}>${S.audit?'Organizza':'Compra'}</button></div>`:''}
  <div class="row"><div class="t"><b>Pubblicità</b><span>${S.ad?'In corso: '+ADS[S.ad.i].n+' · ancora '+S.ad.days+' giorni':'Più clienti per qualche giorno'}</span></div><button id="pb">Vedi</button></div>
  <div class="row"><div class="t"><b>Pavimento</b><span>${FLOORT[S.floorT||0].n}</span></div><button id="fl">Cambia</button></div>
