@@ -32,6 +32,7 @@ canvas{width:100%;height:100%;display:block;touch-action:none}
 #nav #go{flex:1.5;background:var(--amber);color:#2b1d00;font-size:15px}
 #nav #go:disabled{background:#ffffff26;color:#fff}
 #sheet{position:absolute;inset:0;background:#fff;color:var(--ink);display:flex;flex-direction:column;z-index:5}
+#sheet button{min-height:44px}
 .sh-body{flex:1;overflow:auto;padding:16px 14px}
 .sh-foot{padding:10px 12px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:#fff}
 .sh-foot button{width:100%;padding:15px;background:#E9EEF6;color:var(--ink);font-size:16px}
@@ -491,12 +492,16 @@ function pickEvent(){assign();lastHalf=false;S.clean.forEach(m=>{m.x=null;m.tg=n
 const blk=()=>!!(stats&&stats.black&&phase!=='prep'&&phase!=='summary'&&t>=stats.black[0]&&t<stats.black[1]);
 const BN=document.createElement('div');BN.style.cssText='position:fixed;left:50%;bottom:12px;transform:translate(-50%,30px);opacity:0;transition:all .4s;z-index:6;padding:10px 16px;border-radius:14px;font-weight:900;font-size:15px;max-width:86%;text-align:center;pointer-events:none;box-shadow:0 4px 14px #0006;color:#fff';$('stage').appendChild(BN);
 let bnq=[],bnBusy=false,bnTm=0;
-// Avvisi in basso: con una finestra aperta stanno appena sopra il tasto Indietro, sennò in fondo alla mappa.
-function bnPos(){const sh=$('sheet'),open=sh&&!sh.classList.contains('hidden');let box=$('stage').getBoundingClientRect(),vw=$('vw'),y=vw&&vw.offsetParent?vw.getBoundingClientRect().top:box.bottom;
- if(open){box=sh.getBoundingClientRect();const f=sh.querySelector('.sh-foot');y=f&&f.offsetParent?f.getBoundingClientRect().top:box.bottom;}
- BN.style.left=Math.round(box.left+box.width/2)+'px';BN.style.bottom=Math.round(innerHeight-y+10)+'px';}
+// Avvisi in basso. Con una finestra aperta l'avviso entra nella finestra come una striscia fra l'elenco e il tasto Indietro:
+// l'elenco si accorcia e non viene coperto niente. Sulla mappa galleggia sopra «Vista esterna».
+function bnPos(){const sh=$('sheet'),open=sh&&!sh.classList.contains('hidden'),f=open&&sh.querySelector('.sh-foot');
+ if(f&&f.offsetParent){if(BN.parentNode!==sh||BN.nextSibling!==f)sh.insertBefore(BN,f);
+  Object.assign(BN.style,{position:'relative',left:'auto',bottom:'auto',margin:'8px auto',flex:'none',alignSelf:'center',width:'fit-content',transform:BN._on?'none':'translateY(20px)'});return;}
+ if(BN.parentNode!==$('stage'))$('stage').appendChild(BN);
+ const box=$('stage').getBoundingClientRect(),vw=$('vw'),y=vw&&vw.offsetParent?vw.getBoundingClientRect().top:box.bottom;
+ Object.assign(BN.style,{position:'fixed',margin:'0',width:'',left:Math.round(box.left+box.width/2)+'px',bottom:Math.round(innerHeight-y+10)+'px',transform:BN._on?'translate(-50%,0)':'translate(-50%,30px)'});}
 function banner(tx,c){if(/^Ufficio ingrandito/.test(tx))sndLevel();else if(/^(Obiettivo raggiunto|Missione compiuta|Ispezione superata|Collezione:|Nuovo francobollo)/.test(tx)||/\u20ac|Premio/.test(tx)&&/^(Premio|Bonus)/.test(tx))sndBonus();bnq.push([tx,c||'#1E56C8']);nextBn();}
-function nextBn(){const st=$('start');if(st&&st.style.display!=='none')return;if(bnBusy||!bnq.length)return;bnBusy=true;const [tx,c]=bnq.shift();BN.textContent=tx;BN.style.background=c;bnPos();clearInterval(bnTm);bnTm=setInterval(bnPos,200);BN.style.opacity=1;BN.style.transform='translate(-50%,0)';setTimeout(()=>{BN.style.opacity=0;BN.style.transform='translate(-50%,30px)';setTimeout(()=>{clearInterval(bnTm);bnBusy=false;nextBn();},450);},3800);}
+function nextBn(){const st=$('start');if(st&&st.style.display!=='none')return;if(bnBusy||!bnq.length)return;bnBusy=true;const [tx,c]=bnq.shift();BN.textContent=tx;BN.style.background=c;BN._on=true;bnPos();clearInterval(bnTm);bnTm=setInterval(bnPos,200);BN.style.opacity=1;setTimeout(()=>{BN._on=false;BN.style.opacity=0;bnPos();setTimeout(()=>{clearInterval(bnTm);if(BN.parentNode!==$('stage')){$('stage').appendChild(BN);Object.assign(BN.style,{position:'fixed',margin:'0',width:'',transform:'translate(-50%,30px)'});}bnBusy=false;nextBn();},450);},3800);}
 function fxCoin(d,fee,c){const n=performance.now();FX.push({k:'coin',x:d.x+.5,y:d.y+.35,t0:n,txt:'+'+eur(fee)});FX.push({k:'heart',x:c.x,y:c.y,t0:n});}
 function fxPop(x,y){FX.push({k:'pop',x,y,t0:performance.now(),d:700});}
 function drawFX(){const now=performance.now();for(let i=FX.length-1;i>=0;i--){const f=FX[i],a=(now-f.t0)/(f.d||1300);if(a>=1){FX.splice(i,1);continue;}
@@ -580,7 +585,7 @@ function showChoice(ev){if(!ev)return;let m=null;if(ev.emp){const c=S.staff.filt
 let ASKPREV=1;
 function showAsk(c){const old=document.getElementById('askbox');if(!old)ASKPREV=speed;const prev=ASKPREV;speed=0;if(old)old.remove();
  const box=document.createElement('div');box.id='askbox';box.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:110px;width:min(340px,90vw);background:#14233F;color:#fff;border-radius:16px;padding:12px 14px;z-index:60;box-shadow:0 6px 24px #0007;font-family:system-ui,sans-serif';
- const bs='width:100%;margin-top:7px;padding:10px 12px;font-size:14px;font-weight:700;border-radius:10px;border:0;text-align:left;background:#E9EEF6;color:#14233F';
+ const bs='width:100%;min-height:44px;margin-top:7px;padding:10px 12px;font-size:14px;font-weight:700;border-radius:10px;border:0;text-align:left;background:#E9EEF6;color:#14233F';
  box.innerHTML='<div style="font-weight:900;font-size:15px">Cliente impaziente</div><div style="font-size:13px;opacity:.85;margin-top:2px">Aspetta da un po’. Cosa fai?</div><button data-o="0" style="'+bs+'">Lo calmi con due parole</button><button data-o="1" '+(S.cash<1.5?'disabled ':'')+'style="'+bs+'">Offri un caffè (−1,50 €)</button><button data-o="-1" style="'+bs.replace('#E9EEF6','#34496F').replace('#14233F','#fff')+';text-align:center">Lascia stare</button>';
  const fin=(k)=>{box.remove();speed=prev;let r='';
   if(k===0&&c.state==='wait'){c.ask=0;c.born=t-(t-c.born)*.4;S.rep=Math.min(100,S.rep+.5);r='Lo hai calmato con due parole.';}
@@ -1482,7 +1487,7 @@ function objThumb(key,Z,S2){Z=Z||1;
 }
 function showArredi(){
  const row=(k,n,d,c,extra)=>{const L=ulK(k),lk=L>S.lvl+1;return `<div class="row"><img class="th" src="${objThumb(k)}"><div class="t"><b>${n}</b><span>${lk?'Si sblocca al livello '+L:(d?d+' · ':'')+eur(c)}</span></div><button data-k="${k}" ${S.cash<c||extra||lk?'disabled':''}>Compra</button></div>`;};
- const h='<h2>Arredi</h2><div style="font-weight:900;color:#1E56C8;margin-top:6px">Scrivanie</div>'+DESKT.map((d,i)=>row('desk:'+i,d.n,'Per un nuovo dipendente',d.c)).join('')+
+ const h='<h2>Arredi</h2><div style="font-weight:900;color:#1E56C8;margin-top:6px">Scrivanie</div>'+(()=>{const full=S.lvl===0&&S.objs.filter(o=>o.k==='desk').length>=2;return DESKT.map((d,i)=>row('desk:'+i,d.n,full?'Al livello 1 puoi avere al massimo 2 scrivanie':'Per un nuovo dipendente',d.c,full)).join('');})()+
  '<div style="font-weight:900;color:#1E56C8;margin-top:12px">Sedie al pubblico</div>'+CHAIRT.map((d,i)=>row('chair:'+i,d.n,'Per i clienti in attesa',d.c)).join('')+
  '<div style="font-weight:900;color:#1E56C8;margin-top:12px">Armadi</div>'+WT.map((w,i)=>row('ward:'+i,w.n,w.kind==='doc'?'Per ritiri di raccomandate e pacchi':w.kind==='cas'?'Per la casella postale':'Per i soldi',w.c)).join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Poster promozionali</div>'+POSTER.map((p,i)=>p.rare&&!S.goals[p.rare]?'':row('poster:'+i,p.n,p.rare?'Premio · si attacca alle pareti senza finestre':'Si attacca alle pareti senza finestre',p.c)).join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Area relax</div>'+DECO.map((d,i)=>d.g==='r'?row('deco:'+i,d.n,d.d,d.c):'').join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Piante</div>'+DECO.map((d,i)=>d.g==='p'?row('deco:'+i,d.n,d.d,d.c):'').join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Per abbellire</div>'+DECO.map((d,i)=>d.g==='a'?row('deco:'+i,d.n,d.d,d.c):'').join('')+(DECO.some(d=>d.g==='x'&&S.found[d.rare])?'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Pezzi rari</div>'+DECO.map((d,i)=>d.g==='x'&&S.found[d.rare]?row('deco:'+i,d.n,'Nuovo! Pezzo raro',d.c):'').join(''):'')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Bagno</div>'+BAGNI.map((b,i)=>S.objs.some(o=>o.k==='wc'&&o.t===i)?'':row('wc:'+i,b.n,i===0?'Per tutti':'Servizio separato',b.c,false)).join('')+'<div style="font-weight:900;color:#1E56C8;margin-top:12px">Altro</div>'+
  `<div class="row"><img class="th" src="${objThumb('totem')}"><div class="t"><b>Totem con i numeri</b><span>${hasTotem()?'Già presente':UL.totem>S.lvl+1?'Si sblocca al livello '+UL.totem:eur(COST.totem)+' · i clienti prendono il numero. I display allo sportello si comprano dallo sportello'}</span></div>${hasTotem()?'':`<button data-k="totem" ${S.cash<COST.totem||UL.totem>S.lvl+1?'disabled':''}>Compra</button>`}</div>`+
@@ -1540,7 +1545,7 @@ function unlockList(L){const o=[],add=(t,a)=>{if(a.length)o.push([t,a]);};
  add('Arredi',[].concat(by(DESKT,UL.desk),by(CHAIRT,UL.chair),by(WT,UL.ward),by(POSTER,UL.poster,x=>!x.rare),by(DECO,UL.deco,x=>!x.rare),by(BAGNI,UL.wc),UL.totem===L?['Totem elimina code']:[],UL.atm===L?['ATM']:[],UL.safe===L?['Cassaforte']:[],UL.rdesk===L?['Scrivania del retrosportello']:[],UL.tpc===L?['PC per i clienti']:[]));
  const M=[];[['Allarme',UL.mig.alarm],['Porta d’ingresso',UL.mig.doorT],['Telecamere',UL.mig.cam],['Mezzi',UL.mig.veh]].forEach(a=>a[1].forEach(l=>{if(l===L&&!M.includes(a[0]))M.push(a[0]);}));
  UL.mig.rup.includes(L)&&M.push('Retrosportello: ingrandimento');UL.mig.pup.includes(L)&&M.push('Sala postini: ingrandimento');UL.mig.ad.includes(L)&&M.push('Pubblicità');
- if(L===3)M.push('Seconda porta','Passerella per disabili','Pavimento e pareti');if(L===4)M.push('Retrosportello','Condizionatore','Riscaldamento');if(L===5)M.push('Vetri oscurati');if(L===7)M.push('Sala postini');if(L===10)M.push('Sala consulenza');if(L===2)M.push('Insegna');
+ if(L===3)M.push('Seconda porta');if(L===4)M.push('Retrosportello','Condizionatore','Riscaldamento');if(L===5)M.push('Vetri oscurati');if(L===7)M.push('Sala postini');if(L===10)M.push('Sala consulenza');if(L===2)M.push('Insegna');
  add('Migliorie',M);return o;}
 function showUnlock(L){const u=unlockList(L);if(!u.length)return;sheet('<h2>Livello '+L+': novità</h2>'+u.map(a=>'<div class="row"><div class="t"><b>'+a[0]+'</b><span>'+a[1].map(tc).join(', ')+'</span></div></div>').join(''),'Chiudi');}
 function doExpand(c){
@@ -1557,7 +1562,7 @@ function styleRow(kind){const T=kind==='floor'?FLOORT:WALLT,key=kind==='floor'?'
 function showMig(){
  const lvl=S.lvl,last=lvl>=ROOMS.length-1,c=EXP_C[lvl+1];
  const s=sheet(`<h2>Migliorie</h2>
- ${(()=>{const need=S.lvl<2;return `<div class="row">${mi('door0')}<div class="t"><b>Seconda porta</b><span>${S.door2?'Acquistata':need?'Serve almeno l’ufficio di livello 3':'Una seconda porta all’ingresso · '+eur(MC.door2)}</span></div>${S.door2||need?'':`<button id="d2" ${S.cash<MC.door2?'disabled':''}>Compra</button>`}</div>`;})()}
+ ${(()=>{const need=S.lvl<2;return `<div class="row">${mi('door0')}<div class="t"><b>Seconda porta</b><span>${S.door2?'Acquistata':need?'Si sblocca al livello 3':'Una seconda porta all’ingresso · '+eur(MC.door2)}</span></div>${S.door2?'':`<button id="d2" ${need||S.cash<MC.door2?'disabled':''}>Compra</button>`}</div>`;})()}
  ${(()=>{const a=S.alarm||0,n=ALARM[a+1];return `<div class="row">${mi('alarm')}<div class="t"><b>Allarme</b><span>${ALARM[a].n} · se c’è una rapina, ti ridà parte dei soldi${n?' · prossimo: '+n.n+' '+eur(n.c):' · massimo'}</span></div>${n?`<button id="al" ${S.cash<n.c?'disabled':''}>Compra</button>`:''}</div>`;})()}
  ${(()=>{const t=S.doorT||0,n=DOORT[t+1];return `<div class="row">${mi('door'+(S.doorT||0))}<div class="t"><b>Porta d’ingresso</b><span>${DOORT[t].n} · cambia solo l’aspetto${n?' · prossima: '+n.n+' '+eur(n.c):' · massima sicurezza'}</span></div>${n?`<button id="dt" ${S.cash<n.c?'disabled':''}>Cambia</button>`:''}</div>`;})()}
  ${[['ac','Condizionatore',MC.ac,'Col caldo vengono più clienti'],['heat','Riscaldamento',MC.heat,'Col freddo vengono più clienti'],['tint','Vetri oscurati',MC.tint,'Cambia solo l’aspetto']].map(([k,n,c,d])=>`<div class="row">${ico2(k)}<div class="t"><b>${n}</b><span>${S[k]?'Acquistato':d+' · '+eur(c)}</span></div>${S[k]?'':`<button data-u="${k}" data-c="${c}" ${S.cash<c?'disabled':''}>Compra</button>`}</div>`).join('')}
@@ -1582,7 +1587,7 @@ lockMig(s);s.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>buyRoom(b.dat
  const alb=s.querySelector('#al');if(alb)alb.onclick=()=>{const n=ALARM[(S.alarm||0)+1];if(!n||S.cash<n.c||UL.mig.alarm[S.alarm||0]>S.lvl+1)return;S.cash-=n.c;S.alarm=(S.alarm||0)+1;save();ui();showMig();};
  const dtb=s.querySelector('#dt');if(dtb)dtb.onclick=()=>{const n=DOORT[(S.doorT||0)+1];if(!n||S.cash<n.c||UL.mig.doorT[S.doorT||0]>S.lvl+1)return;S.cash-=n.c;S.doorT=(S.doorT||0)+1;save();ui();showMig();};
  const d2=s.querySelector('#d2');if(d2)d2.onclick=()=>{S.cash-=MC.door2;S.door2=true;save();ui();showMig();};const rp=s.querySelector('#rp');if(rp)rp.onclick=()=>{if(S.cash<MC.ramp)return;S.cash-=MC.ramp;S.ramp=true;save();ui();showMig();};
- const e=s.querySelector('#exp');if(e)e.onclick=()=>{doExpand(c);showMig();};
+ const e=s.querySelector('#exp');if(e)e.onclick=()=>{doExpand(c);if(!unlockList(S.lvl+1).length)showMig();};// doExpand apre già «Livello N: novità»: non va coperto
  s.querySelector('#sg').onclick=showSign;s.querySelector('#pb').onclick=showAds;{const au=s.querySelector('#au');if(au)au.onclick=()=>{if(!S.audit){if(S.cash<AUD_C)return;S.cash-=AUD_C;S.audit=1;banner('Auditorium inaugurato!','#C9962A');}else{if(S.cash<AUD_EV||(S.evAt!=null&&S.day-S.evAt<7))return;S.cash-=AUD_EV;S.evAt=S.day;S.evBoost=1;banner('Evento speciale organizzato: domani molti più clienti!','#8E24AA');if(Math.random()<.4)grantStamp('All’evento arriva un collezionista');}save();ui();showMig();};}const cmb=s.querySelector('#cm');if(cmb)cmb.onclick=()=>{const n=CAMS[(S.cam||0)+1];if(!n||S.cash<n.c||UL.mig.cam[S.cam||0]>S.lvl+1)return;S.cash-=n.c;S.cam=(S.cam||0)+1;save();ui();showMig();};s.querySelectorAll('[data-sk]').forEach(b=>b.onclick=()=>{const kind=b.dataset.sk,i=+b.dataset.si,T=kind==='floor'?FLOORT:WALLT,key=kind==='floor'?'floorT':'wallT',own=kind==='floor'?'floorOwned':'wallOwned',x=T[i];if(!S[own][i]){if(S.cash<x.c)return;S.cash-=x.c;S[own][i]=1;}S[key]=i;save();ui();showMig();});const vb=s.querySelector('#vh');if(vb)vb.onclick=()=>{const n=VEH[(S.veh||0)+1];if(!n||S.cash<n.c||UL.mig.veh[S.veh||0]>S.lvl+1)return;S.cash-=n.c;S.veh=(S.veh||0)+1;save();ui();showMig();};
 }
 function showSummary(){const _sh=sheet;
