@@ -1375,7 +1375,7 @@ function canPlace(k,x,y,t){
  if(k==='atm'){if(!(inFloor(x,y)||atmOutside(x,y)))return false;}else if(!inFloor(x,y))return false;
  if(isEntry(x,y)||objAt(x,y))return false;
  const rm=roomOf(x,y),main=rm&&rm.id==='main';
- if(k==='desk'){if(!(main&&y===y0+1))return false;const dk=S.objs.filter(o=>o.k==='desk');if(dk.length){if(!dk.some(o=>o.y===y&&Math.abs(o.x-x)===1))return false;}else if(x!==f.x0&&x!==f.x1)return false;}
+ if(k==='desk'){if(!(main&&y===y0+1))return false;const dk=S.objs.filter(o=>o.k==='desk');if(S.lvl===0&&dk.length>=2)return false;if(dk.length){if(!dk.some(o=>o.y===y&&Math.abs(o.x-x)===1))return false;}else if(x!==f.x0&&x!==f.x1)return false;}
  else if(k==='rdesk'){if(!(rm&&rm.id==='retro')||S.objs.filter(o=>o.k==='rdesk').length>=2)return false;}
  else if(k==='pdesk'){if(!(rm&&rm.id==='post'&&y===rm.y0))return false;}
  else if(k==='tpc'){if(!(rm&&rm.id==='retro')||S.objs.filter(o=>o.k==='tpc').length>=2)return false;}
@@ -1391,7 +1391,7 @@ function canPlace(k,x,y,t){
 function place(k,x,y,t){
  t=t||0;{const lv=ulK(k+(['desk','chair','ward','poster','deco','wc'].includes(k)?':'+t:''));if(lv>S.lvl+1){setMsg('Si sblocca al livello '+lv);return;}}const cost=costOf(k,t);
  if(S.cash<cost){setMsg('Cassa insufficiente');return;}
- if(!canPlace(k,x,y,t)){setMsg(k==='door'?(S.rooms.retro?'La porta va nello spazio dietro le scrivanie':'Serve prima il retrosportello'):(k==='totem'&&hasTotem())||((k==='atm'||k==='safe')&&S.objs.some(o=>o.k===k))?'Ce n’è già uno':k==='desk'?'La prima scrivania parte da un lato in fondo, le altre vanno attaccate':k==='rdesk'?'Si mette nel retrosportello (massimo 2)':k==='pdesk'?'Il banco va lungo il muro di fondo della sala postini':'Qui non si può: serve spazio libero e il passaggio deve restare libero');return;}
+ if(!canPlace(k,x,y,t)){setMsg(k==='door'?(S.rooms.retro?'La porta va nello spazio dietro le scrivanie':'Serve prima il retrosportello'):(k==='totem'&&hasTotem())||((k==='atm'||k==='safe')&&S.objs.some(o=>o.k===k))?'Ce n’è già uno':k==='desk'?(S.lvl===0&&S.objs.filter(o=>o.k==='desk').length>=2?'Al livello 1 puoi avere al massimo 2 scrivanie':'La prima scrivania parte da un lato in fondo, le altre vanno attaccate'):k==='rdesk'?'Si mette nel retrosportello (massimo 2)':k==='pdesk'?'Il banco va lungo il muro di fondo della sala postini':'Qui non si può: serve spazio libero e il passaggio deve restare libero');return;}
  if(k==='door'){S.rooms.rd.push(x);S.cash-=cost;save();ui();return true;}
  const n=k==='deco'||k==='tpc'||k==='wc'?{k,x,y,t}:k==='chair'||k==='ward'?{k,x,y,t,res:null}:(k==='totem'||k==='atm'||k==='safe')?{k,x,y}:{k,x,y,t,eq:[],st:null,cur:null};
  S.objs.push(n);
