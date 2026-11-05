@@ -918,7 +918,7 @@ function tourShow(i){tourI=i;if(i>=TOUR.length){tourEnd();return;}const [sel,tx]
  $('ttx').textContent=tx;$('tpg').textContent=(i+1)+' / '+TOUR.length;$('tnx').textContent=i===TOUR.length-1?'Fine':'Avanti';}
 function startTour(){closeSheet();TV.style.display='block';tourShow(0);}
 function tourEnd(){TV.style.display='none';S.tutDone=1;save();}
-$('tnx').onclick=()=>tourShow(tourI+1);$('tsk').onclick=tourEnd;$('nHelp').onclick=startTour;
+$('tnx').onclick=()=>tourShow(tourI+1);$('tsk').onclick=tourEnd;$('nHelp').onclick=showHelp;
 /* ---------- telecamere, pubblicità, usura, concorrenza ---------- */
 const CAMS=[{n:'Nessuna telecamera',c:0,rob:1,rec:0,k:0},{n:'2 telecamere',c:600,rob:.7,rec:.05,k:2},{n:'4 telecamere',c:1500,rob:.45,rec:.1,k:4},{n:'Sistema completo con registrazione',c:3500,rob:.25,rec:.2,k:6}];
 const ADS=[{n:'Volantini',c:150,days:3,pct:.15},{n:'Manifesti in città',c:400,days:5,pct:.25},{n:'Spot radio',c:900,days:7,pct:.4},{n:'Pubblicità online',c:1500,days:10,pct:.6},{n:'Spot in TV locale',c:4000,days:14,pct:.8},{n:'Sponsor della squadra di calcio',c:9000,days:20,pct:1}];
