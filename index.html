@@ -602,7 +602,7 @@ function showEvalResult(){const r=evalScore(),prize=Math.round(EVP[r.stars-1]*(1
  const star=i=>'<span class="evst" style="font-size:38px;color:#D5DAE5;transition:all .3s;display:inline-block">★</span>';
  const s2=sheet('<h2>Valutazione dell’ufficio</h2><div style="font-size:14px;color:#5B6B86">La commissione ha guardato le ultime due settimane…</div><div id="evstars" style="text-align:center;margin:14px 0">'+[0,1,2,3,4].map(star).join('')+'</div><div id="evres" style="opacity:0;transition:opacity .6s">'+
   '<div style="text-align:center;font-weight:900;font-size:18px">'+['Da rivedere','Sufficiente','Buono','Ottimo','Eccellente'][r.stars-1]+' · '+r.sc+'/100</div>'+
-  r.parts.map(p=>'<div class="row"><div class="t"><b>'+p[0]+'</b><span><span style="display:inline-block;height:7px;width:'+p[1]+'%;max-width:100%;background:'+moodCol(p[1])+';border-radius:4px"></span> '+p[1]+'</span></div></div>').join('')+
+  r.parts.map(p=>'<div class="row"><div class="t"><b>'+p[0]+'</b><span><span style="display:inline-block;height:7px;width:'+p[1]+'%;max-width:100%;background:'+moodCol(p[1])+';border-radius:4px"></span> '+Math.round(p[1])+'</span></div></div>').join('')+
   '<div style="font-weight:900;color:#1E56C8;margin-top:12px">Classifica degli uffici</div>'+comp.map((c,i)=>'<div class="row" style="'+(c.me?'background:#FFF3C4;border-radius:10px;padding:2px 6px':'')+'"><div class="t"><b>'+(i+1)+'. '+c.n+'</b></div><b>'+c.sc+'</b></div>').join('')+
   '<div style="text-align:center;margin-top:12px;font-weight:900">'+(prize?'Premio: '+eur(prize):'Nessun premio questa volta')+' · '+rank+'º su '+comp.length+'</div></div>','Chiudi');
  const sp=s2.querySelectorAll('.evst');sp.forEach((e,i)=>setTimeout(()=>{if(i<r.stars){e.style.color='#F5B83D';e.style.transform='scale(1.25)';setTimeout(()=>e.style.transform='scale(1)',250);}},500+i*520));
@@ -662,16 +662,18 @@ function showGameOver(){S.over=1;save();const a=getScores().slice().sort((x,y)=>
 function bankrupt(){recordScore('Fallimento');showGameOver();}
 function redCheck(){if(S.cash>=0){if(S.red)banner('Sei tornato in positivo!','#2E7D4F');S.red=0;return false;}
  S.red=(S.red||0)+1;
- if(S.staff.length){const m=S.staff.slice().sort((a,b)=>(a.mood==null?60:a.mood)-(b.mood==null?60:b.mood))[0];S.staff.splice(S.staff.indexOf(m),1);assign();banner(m.nm+' se ne va: stipendi non pagati','#C0342B');}
- if(S.red>=3||!S.staff.length){bankrupt();return true;}
+ // l'ultimo dipendente non se ne va mai: si fallisce solo alla terza notte in rosso
+ if(S.staff.length>1){const m=S.staff.slice().sort((a,b)=>(a.mood==null?60:a.mood)-(b.mood==null?60:b.mood))[0];S.staff.splice(S.staff.indexOf(m),1);assign();banner(m.nm+' se ne va: stipendi non pagati','#C0342B');}
+ if(S.red>=3){bankrupt();return true;}
  save();return false;}
-function showRescue(){const left=3-S.red;sheet('<h2>⚠ Cassa in rosso</h2><div style="font-size:15px;margin:6px 0">Ti mancano <b>'+eur(-S.cash)+'</b> per tornare a zero. Hai ancora <b>'+left+' giorni</b>: se a fine giornata sei ancora sotto zero, ogni notte un dipendente se ne va, e al terzo giorno fallisci.</div>'+
+// ev=true: la sera, prima della notte (il piano del giorno si sceglie solo il mattino, quindi niente tasto «Piano»)
+function showRescue(ev){const left=3-(S.red||0);sheet('<h2>⚠ Cassa in rosso</h2><div style="font-size:15px;margin:6px 0">Ti mancano <b>'+eur(-S.cash)+'</b> per tornare a zero. Hai ancora <b>'+left+' giorni</b>: se a fine giornata sei ancora sotto zero, ogni notte un dipendente se ne va, e al terzo giorno fallisci.</div>'+
  '<div style="font-weight:900;color:#1E56C8;margin-top:10px">Come rimediare</div>'+
  '<div class="row"><div class="t"><b>Vendi arredi e attrezzature</b><span>Ti rimborsano il 35%, subito. Puoi farlo anche prima di aprire.</span></div><button id="rv">Vendi</button></div>'+
  '<div class="row"><div class="t"><b>Licenzia chi costa di più</b><span>Meno stipendi ogni giorno.</span></div><button id="rl">Personale</button></div>'+
- '<div class="row"><div class="t"><b>Cambia il piano del giorno</b><span>Prezzi alti: ogni servizio rende di più. Oppure una giornata promozione per avere più clienti.</span></div><button id="rp2">Piano</button></div>'+
+ (ev?'':'<div class="row"><div class="t"><b>Cambia il piano del giorno</b><span>Prezzi alti: ogni servizio rende di più. Oppure una giornata promozione per avere più clienti.</span></div><button id="rp2">Piano</button></div>')+
  '<div style="font-size:12px;color:#5B6B86;margin-top:10px">Appena la cassa torna sopra zero, il pericolo finisce.</div>','Ho capito');
- const q=sel=>document.querySelector('#sheet '+sel);q('#rv').onclick=()=>{closeSheet();setTool('remove');};q('#rl').onclick=showStaff;q('#rp2').onclick=showPlan;}
+ const q=sel=>document.querySelector('#sheet '+sel);q('#rv').onclick=()=>{closeSheet();setTool('remove');};q('#rl').onclick=showStaff;if(q('#rp2'))q('#rp2').onclick=showPlan;}
 function afterDay(){checkMission();yearCheck();}
 function showBacheca(){const T=S.trophies,left=Math.max(0,S.yr.end-S.day),m=S.mis&&MIS.find(x=>x.id===S.mis.id);
  sheet('<h2>Bacheca</h2>'+(S.won?'<div class="row"><div class="t"><b>Anno Leggendario '+hardN()+'</b><span>Costi +'+Math.round(hardN()*10)+'%, imprevisti più duri</span></div></div>':'')+'<div class="row"><div class="t"><b>Anno '+S.yr.n+'</b><span>mancano '+left+' giorni alla premiazione dell’Ufficio dell’anno</span></div></div>'+
@@ -1615,7 +1617,7 @@ function showSummary(){const _sh=sheet;
 $('nArr').onclick=showArredi;$('nPer').onclick=showStaff;$('nMig').onclick=showMig;$('vw').onclick=()=>{view=view==='in'?'out':'in';$('vw').textContent=view==='in'?'Vista esterna':'Vista interna';if(view==='out')setTool(null);};
 $('nMen').onclick=showMenu;$('nSer').onclick=showServizi;
 [['s0',0],['s1',1],['s2',2],['s4',4]].forEach(([id,v])=>$(id).onclick=()=>{speed=v;ui();});
-$('go').onclick=()=>{if(S.over){showGameOver();return;}if(phase==='prep'){if(S.day>=2&&canOpen())showPlan();else openDay();}else if(phase==='summary'){if(redCheck())return;afterDay();phase='prep';t=OPEN;closeSheet();startDayPrep();assign();ui();if(S.red>0)setTimeout(showRescue,700);if(S.day>=S.evalNext)setTimeout(showEvalResult,500);}};
+$('go').onclick=()=>{if(S.over){showGameOver();return;}if(phase==='prep'){if(S.day>=2&&canOpen())showPlan();else openDay();}else if(phase==='summary'){if(S.cash<0&&S.rescEve!==S.day){S.rescEve=S.day;save();showRescue(true);return;}if(redCheck())return;afterDay();phase='prep';t=OPEN;closeSheet();startDayPrep();assign();ui();if(S.red>0)setTimeout(showRescue,700);if(S.day>=S.evalNext)setTimeout(showEvalResult,500);}};
 function worldOf(e){const r=cv.getBoundingClientRect(),cx=(e.clientX-r.left)*cv.width/r.width,cy=(e.clientY-r.top)*cv.height/r.height;return[(cx-cam.ox)/cam.sc+cam.wx0,(cy-cam.oy)/cam.sc+cam.wy0];}
 function tileOf(e,z){const [wx,wy0]=worldOf(e),wy=wy0+(z||0);const a=wy/(IH/2),b=wx/(IW/2);return[Math.floor((a+b)/2),Math.floor((a-b)/2)];}
 function hitObj(e){const [wx,wy]=worldOf(e);const l=[...S.objs].sort((a,b)=>(b.x+b.y)-(a.x+a.y));for(const o of l){const p=iso(o.x+.5,o.y+.5,0),up=o.k==='ward'?80:o.k==='chair'?44:96;if(wx>=p[0]-IW/2&&wx<=p[0]+IW/2&&wy>=p[1]-up&&wy<=p[1]+IH/2)return o;}return null;}
