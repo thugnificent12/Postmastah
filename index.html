@@ -238,7 +238,7 @@ let MB=null,MSRC=null,MG=null,MLOAD=0;
 function musicSync(){try{
  if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();
  if(!MG){MG=AC.createGain();MG.connect(AC['destin'+'ation']);}
- MG.gain.value=RT.mus?RT.mvol/100*.45:0;
+ MG.gain.value=RT.mus?RT.mvol/100*.22:0;
  if(!MB&&!MLOAD){MLOAD=1;fetch('musica.mp3').then(r=>r.arrayBuffer()).then(b=>AC.decodeAudioData(b)).then(buf=>{MB=buf;musicSync();}).catch(()=>{MLOAD=0;});}
  if(MB&&!MSRC){MSRC=AC.createBufferSource();MSRC.buffer=MB;MSRC.loop=true;MSRC.connect(MG);MSRC.start(0);}
  if(!document.hidden){if(AC.state==='suspended')AC.resume();}else if(AC.state==='running')AC.suspend();
@@ -483,7 +483,7 @@ function showGoals(){const done=Object.keys(S.goals).length;
 const EVTS=[{id:'mostra',n:'Mostra filatelica',d:'più clienti, tanti per i francobolli da collezione',mult:1.5,boost:['frc','fol'],k:6},
 {id:'pensioni',n:'Giorno delle pensioni',d:'più clienti per le pensioni',mult:1.3,boost:['pn2'],k:5},
 {id:'sciopero',n:'Sciopero dei mezzi',d:'pochi clienti',mult:.6}];
-function pickEvent(){assign();lastHalf=false;S.clean.forEach(m=>{m.x=null;m.tg=null;});stats.inspAt=(S.day>=8&&Math.random()<.07*(1+PR()))?rnd(OPEN+90,STOPARR-60):null;stats.evt=null;stats.black=null;stats.pcAt=null;stats.chAt=null;stats.chEv=null;stats.mish=(S.lvl>=6&&Math.random()<.2+.05*PR()+.05*hardN())?Math.round(((S.hist.slice(-1)[0]||{}).inc||500)*rnd(.4,1)*hardK()/10)*10:0;if(S.diff<=1&&S.lvl>=3&&S.day>=10){if((S.blkEnd||0)>=S.day)banner('Settimana nera: arrivano meno clienti (ancora '+(S.blkEnd-S.day+1)+' giorni)','#C0342B');else if(S.day-(S.blkLast||0)>=(S.diff===0?40:60)&&Math.random()<(S.diff===0?.04:.03)){S.blkEnd=S.day+(S.diff===0?4:3);S.blkLast=S.day;banner('Settimana nera! Lavori in strada: per '+(S.diff===0?5:4)+' giorni arrivano molti meno clienti. Tieni una riserva di soldi','#C0342B');}}
+function pickEvent(){assign();lastHalf=false;S.clean.forEach(m=>{m.x=null;m.tg=null;});stats.inspAt=(S.day>=8&&Math.random()<.07*(1+PR()))?rnd(OPEN+90,STOPARR-60):null;stats.evt=null;stats.black=null;stats.pcAt=null;stats.chAt=null;stats.chEv=null;stats.mish=(S.lvl>=6&&Math.random()<.2+.05*PR()+.05*hardN())?Math.round(Math.max((S.hist.slice(-1)[0]||{}).inc||500,Math.round(S.cash*.17))*rnd(.4,1)*hardK()/10)*10:0;if(S.diff<=1&&S.lvl>=3&&S.day>=10){if((S.blkEnd||0)>=S.day)banner('Settimana nera: arrivano meno clienti (ancora '+(S.blkEnd-S.day+1)+' giorni)','#C0342B');else if(S.day-(S.blkLast||0)>=(S.diff===0?40:60)&&Math.random()<(S.diff===0?.04:.03)){S.blkEnd=S.day+(S.diff===0?4:3);S.blkLast=S.day;banner('Settimana nera! Lavori in strada: per '+(S.diff===0?5:4)+' giorni arrivano molti meno clienti. Tieni una riserva di soldi','#C0342B');}}
  {const el=CHEV.filter(e=>S.day>=(e.min||2)&&(!e.ok||e.ok()));if(S.day>=2&&el.length&&Math.random()<.28){stats.chEv=pick(el);stats.chAt=rnd(OPEN+60,STOPARR-100);}}
  if(S.day>=3&&Math.random()<.3)stats.evt=pick(EVTS);
  if(S.day>=3&&Math.random()<.1*DF().evt*(1+1.5*PR())){const a=rnd(OPEN+90,OPEN+220);stats.black=[a,a+45];}
@@ -557,7 +557,7 @@ function showPlan(){const sel=(a,b)=>a===b?'background:#1E56C8;color:#fff':'back
  s2.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{S.plan.pr=+b.dataset.p;save();showPlan();});
  s2.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{S.plan.fc=b.dataset.f;save();showPlan();});
  s2.querySelector('#pgo').onclick=()=>{const paid=S.plan.fc&&S.cash>=FCS_COST;if(paid)S.cash-=FCS_COST;openDay();stats.fc=paid?S.plan.fc:'';stats.pl=S.plan.pr;S.buzz=0;S.evBoost=0;};}
-const LI=()=>Math.max(300,(S.hist.slice(-1)[0]||{}).inc||300),pc=f=>Math.round(LI()*f/10)*10;
+const LI=()=>Math.max(300,(S.hist.slice(-1)[0]||{}).inc||300,Math.round(S.cash*.17)),pc=f=>Math.round(LI()*f/10)*10;
 const CHEV=[
  {id:'arr',n:'Cliente arrabbiato',tx:'Un cliente in coda protesta ad alta voce e gli altri guardano.',o:[['Offri un buono (−25 €)',()=>{S.cash-=25;S.rep=Math.min(100,S.rep+3);return 'Il cliente si calma. Reputazione in su.';},25],['Ignora',()=>{if(Math.random()<.5){S.rep=Math.max(0,S.rep-3);return 'Se ne va sbattendo la porta. Reputazione in giù.';}return 'Si stufa e se ne va in silenzio.';}]]},
  {id:'pc',n:'Il PC fa i capricci',min:3,ok:()=>desks().some(d=>d.st&&d.eq.includes('pc')),tx:'Un PC allo sportello si blocca ogni tanto.',o:[['Chiama il tecnico (−60 €)',()=>{S.cash-=60;return 'Il tecnico sistema tutto.';},60],['Aspetta e vedi',()=>{stats.pcAt=t+1;return 'Il PC si rompe di colpo!';}]]},
