@@ -749,7 +749,7 @@ function staffDaily(){if(S.day<2)return;
  for(const m of S.staff){if(m.off>0){m.off--;if(!m.off)m.sk=0;}else if(m.trn>0){m.trn--;if(m.trn===0){m.tr=Math.min(3,(m.tr||0)+1);banner(m.nm+' ha finito la formazione','#2E7D4F');}}}
  const av=S.staff.filter(m=>!m.off&&!m.trn),avc=av.filter(m=>!hasT(m,'punt')),wv=m=>hasT(m,'ferie')?3:1,wt=avc.reduce((a,m)=>a+wv(m),0);
  if(S.day>=5&&S.lvl>=2&&av.length>=2&&avc.length&&Math.random()<(inFerie()?.035:.002)*wt){let r=Math.random()*wt,m=avc[0];for(const x of avc){r-=wv(x);if(r<=0){m=x;break;}}m.off=inFerie()?5+Math.floor(Math.random()*6):2+Math.floor(Math.random()*3);m.sk=0;banner(m.nm+' è in ferie per '+m.off+' giorni','#6D4C41');}
- {const av2=S.staff.filter(m=>!m.off&&!m.trn);if(S.day>=5&&av2.length>=2&&Math.random()<.015*av2.length){const m=av2[Math.floor(Math.random()*av2.length)];m.off=2+Math.floor(Math.random()*3);m.sk=1;banner(m.nm+' è malato: resta a casa '+m.off+' giorni','#C0342B');}}
+ {const av2=S.staff.filter(m=>!m.off&&!m.trn);if(S.day>=5&&av2.length>=2&&Math.random()<.0115*av2.length){const m=av2[Math.floor(Math.random()*av2.length)];m.off=2+Math.floor(Math.random()*3);m.sk=1;banner(m.nm+' è malato: resta a casa '+m.off+' giorni','#C0342B');}}
  assign();}
 function hitPerson(e){const [wx,wy]=worldOf(e);
  if(phase==='open'||phase==='closing')for(const c of custs){if(!c.ask||c.state!=='wait')continue;const p=iso(c.x,c.y,0);if(Math.abs(wx-p[0])<26&&wy>p[1]-100&&wy<p[1]+6)return{c,kind:'ask'};}
